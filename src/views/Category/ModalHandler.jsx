@@ -20,10 +20,10 @@ class ModalHandler extends Component {
 				<Modal.Body>{this.props.body}</Modal.Body>
 				<Modal.Footer>
 					<Button variant="secondary" onClick={this.props.handleHide}>
-						Close
+						Cancel
 					</Button>
 					<Button variant="primary" onClick={this.props.handleSave}>
-						Save Changes
+						{this.props.loading ? 'Please wait...' : 'Yes'}
 					</Button>
 				</Modal.Footer>
 			</Modal>

@@ -41,6 +41,7 @@ import ModalHandler from './Category/ModalHandler';
 import moment from 'moment';
 import DateTime from 'react-datetime';
 import { Link } from 'react-router-dom';
+import { slicename } from 'utils/slicename';
 
 class Absen extends Component {
 	constructor(props) {
@@ -308,7 +309,7 @@ class Absen extends Component {
 																	x.attributes.selfieImage.url()
 																)
 															}
-															name={x.get('fullname')}
+															name={slicename(x.get('fullname'))}
 															userName={''}
 															description={
 																<span>
@@ -331,12 +332,19 @@ class Absen extends Component {
 																			Absen Keluar:
 																		</strong>
 																		<br />
-																		{moment(
-																			x
-																				.get('absenKeluar')
-																				.toString()
-																		).format(
-																			'DD/MM/YYYY [at] HH:mm:ss'
+																		{x.get('absenKeluar') ===
+																		undefined ? (
+																			'-'
+																		) : (
+																			moment(
+																				x
+																					.get(
+																						'absenKeluar'
+																					)
+																					.toString()
+																			).format(
+																				'DD/MM/YYYY [at] HH:mm:ss'
+																			)
 																		)}
 																	</span>
 																	{/* <br />

@@ -34,40 +34,41 @@ import { User } from 'parse';
 import Absen from 'views/Absen';
 import Overtime from 'views/Overtime';
 import Late from 'views/Late';
+import EarlyLeave from 'views/EarlyLeave';
 
 const dashboardRoutes = [
 	{
 		path: '/absen',
 		name: 'Absen',
-		icon: 'pe-7s-note2',
+		icon: 'pe-7s-users',
 		component: Absen,
 		layout: '/admin'
 	},
 	{
 		path: '/early',
 		name: 'Early request',
-		icon: 'pe-7s-note2',
-		component: UserProfile,
+		icon: 'pe-7s-repeat',
+		component: EarlyLeave,
 		layout: '/admin'
 	},
 	{
 		path: '/late',
 		name: 'Late request',
-		icon: 'pe-7s-note2',
+		icon: 'pe-7s-next',
 		component: Late,
 		layout: '/admin'
 	},
 	{
 		path: '/overtime',
 		name: 'Overtime',
-		icon: 'pe-7s-note2',
+		icon: 'pe-7s-moon',
 		component: Overtime,
 		layout: '/admin'
 	},
 	{
 		path: '/izin',
 		name: 'Izin',
-		icon: 'pe-7s-note2',
+		icon: 'pe-7s-flag',
 		component: UserProfile,
 		layout: '/admin'
 	}

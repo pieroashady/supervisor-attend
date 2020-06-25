@@ -31,7 +31,7 @@ class Login extends Component {
 			.then((x) => {
 				login();
 				this.setState({ loading: false });
-				this.props.history.push('/admin/izin');
+				this.props.history.push('/admin/absen');
 			})
 			.catch((err) => {
 				console.log(err);
@@ -56,17 +56,14 @@ class Login extends Component {
 					</p>
 					<Form onSubmit={this.handleLogin}>
 						<Form.Group controlId="formBasicEmail">
-							<Form.Label>Email address</Form.Label>
+							<Form.Label>Username</Form.Label>
 							<Form.Control
 								type="text"
-								placeholder="Enter email"
+								placeholder="Enter username"
 								onChange={(e) => {
 									this.setState({ username: e.target.value });
 								}}
 							/>
-							<Form.Text className="text-muted">
-								We'll never share your email with anyone else.
-							</Form.Text>
 						</Form.Group>
 
 						<Form.Group controlId="formBasicPassword">

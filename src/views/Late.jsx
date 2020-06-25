@@ -41,6 +41,7 @@ import ModalHandler from './Category/ModalHandler';
 import moment from 'moment';
 import DateTime from 'react-datetime';
 import { Link } from 'react-router-dom';
+import { handleConvert } from 'utils/converter';
 
 class Late extends Component {
 	constructor(props) {
@@ -52,6 +53,7 @@ class Late extends Component {
 			userId: '',
 			fullnames: '',
 			userIndex: 0,
+			status: 3,
 			loading: false,
 			addMode: false,
 			editMode: false,
@@ -63,6 +65,7 @@ class Late extends Component {
 		this.handleDelete = this.handleDelete.bind(this);
 		this.handleApprove = this.handleApprove.bind(this);
 		this.handleReject = this.handleReject.bind(this);
+		this.handleFilter = this.handleFilter.bind(this);
 	}
 
 	componentDidMount() {
@@ -87,7 +90,29 @@ class Late extends Component {
 		});
 	}
 
+	handleFilter(e) {
+		e.preventDefault();
+		this.setState({ loading: true });
+		console.log(this.state.status);
+
+		const Late = Parse.Object.extend('Late');
+		const Leader = Parse.Object.extend('Leader');
+		const leader = new Leader();
+		const query = new Parse.Query(Late);
+
+		console.log(Parse.User.current().get('leaderId').id);
+
+		leader.id = Parse.User.current().get('leaderId').id;
+		query.equalTo('leaderId', leader);
+		query.equalTo('status', parseInt(this.state.status));
+		query.find().then((x) => {
+			console.log(x);
+			this.setState({ late: x, loading: false });
+		});
+	}
+
 	handleApprove(e) {
+		this.setState({ loading: true });
 		const Late = Parse.Object.extend('Late');
 		const query = new Parse.Query(Late);
 
@@ -97,13 +122,15 @@ class Late extends Component {
 				const newOvertime = [ ...this.state.late ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
-					overtime: newOvertime,
-					editMode: false
+					late: newOvertime,
+					editMode: false,
+					loading: false
 				});
 			});
 		});
 	}
 	handleReject(e) {
+		this.setState({ loading: true });
 		const Late = Parse.Object.extend('Late');
 		const query = new Parse.Query(Late);
 
@@ -113,8 +140,9 @@ class Late extends Component {
 				const newOvertime = [ ...this.state.late ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
-					overtime: newOvertime,
-					deleteMode: false
+					late: newOvertime,
+					deleteMode: false,
+					loading: false
 				});
 			});
 		});
@@ -193,7 +221,7 @@ class Late extends Component {
 		query.get(this.state.traineeId).then((x) => {
 			x.set('status', 0);
 			x.save().then((z) => {
-				this.setState({ loading: false });
+				this.setState({ late: z, loading: false });
 				window.location.reload(false);
 			});
 		});
@@ -239,6 +267,7 @@ class Late extends Component {
 					show={this.state.deleteMode}
 					title="Reject confirmation"
 					handleHide={() => this.setState({ deleteMode: false })}
+					loading={this.state.loading}
 					handleSave={this.handleReject}
 					body={'Reject late ' + this.state.fullnames + ' ?'}
 				/>
@@ -246,6 +275,7 @@ class Late extends Component {
 					show={this.state.editMode}
 					title="Approve confirmation"
 					handleSave={this.handleApprove}
+					loading={this.state.loading}
 					handleHide={() => this.setState({ editMode: false })}
 					body={'Approve late ' + this.state.fullnames + ' ?'}
 				/>
@@ -256,6 +286,54 @@ class Late extends Component {
 								title="Data late"
 								content={
 									<div>
+										<Row>
+											<Col>
+												<Form
+													onSubmit={this.handleFilter}
+													style={{ marginBottom: '20px' }}
+												>
+													<Form.Group
+														as={Row}
+														controlId="formHorizontalEmail"
+													>
+														<Col sm={2}>
+															<p>Search by approval</p>
+														</Col>
+														<Col
+															sm={{ span: 2 }}
+															className="pull-right"
+														>
+															<Form.Control
+																as="select"
+																// defaultValue={1}
+																onChange={(e) => {
+																	console.log(e.target.value);
+																	this.setState({
+																		status: e.target.value
+																	});
+																}}
+															>
+																{[ 3, 1, 0 ].map((x) => (
+																	<option value={x}>
+																		{handleConvert(x)}
+																	</option>
+																))}
+															</Form.Control>
+														</Col>
+														<Col sm={{ span: 2 }}>
+															<Button
+																variant="primary"
+																type="submit"
+																disable={loading ? 'true' : 'false'}
+															>
+																<i className="fa fa-search" />{' '}
+																{loading ? 'Fetching...' : 'Search'}
+															</Button>
+														</Col>
+													</Form.Group>
+												</Form>
+											</Col>
+										</Row>
 										<Row>
 											{late.length < 1 ? (
 												<Col md={12}>No data found...</Col>
@@ -307,6 +385,7 @@ class Late extends Component {
 																	</span>
 																</span>
 															}
+															status={x.get('status')}
 															socials={
 																<div>
 																	<OverlayTrigger

@@ -25,7 +25,8 @@ import {
 	FormControl,
 	Form,
 	Tooltip,
-	OverlayTrigger
+	OverlayTrigger,
+	Table
 } from 'react-bootstrap';
 
 import { Card } from 'components/Card/Card.jsx';
@@ -41,6 +42,7 @@ import ModalHandler from './Category/ModalHandler';
 import moment from 'moment';
 import DateTime from 'react-datetime';
 import { Link } from 'react-router-dom';
+import { handleConvert } from 'utils/converter';
 
 class UserProfile extends Component {
 	constructor(props) {
@@ -50,6 +52,7 @@ class UserProfile extends Component {
 			izin: [],
 			error: '',
 			userId: '',
+			status: 3,
 			userIndex: 0,
 			fullnames: '',
 			loading: false,
@@ -61,6 +64,7 @@ class UserProfile extends Component {
 
 		this.handleApprove = this.handleApprove.bind(this);
 		this.handleReject = this.handleReject.bind(this);
+		this.handleFilter = this.handleFilter.bind(this);
 	}
 
 	componentDidMount() {
@@ -68,34 +72,38 @@ class UserProfile extends Component {
 	}
 
 	handleApprove(e) {
-		const Late = Parse.Object.extend('Late');
-		const query = new Parse.Query(Late);
+		this.setState({ loading: true });
+		const Izin = Parse.Object.extend('Izin');
+		const query = new Parse.Query(Izin);
 
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 1);
 			x.save().then(() => {
-				const newOvertime = [ ...this.state.late ];
+				const newOvertime = [ ...this.state.izin ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
-					overtime: newOvertime,
-					editMode: false
+					izin: newOvertime,
+					editMode: false,
+					loading: false
 				});
 			});
 		});
 	}
 
 	handleReject(e) {
-		const Late = Parse.Object.extend('Late');
-		const query = new Parse.Query(Late);
+		this.setState({ loading: false });
+		const Izin = Parse.Object.extend('Izin');
+		const query = new Parse.Query(Izin);
 
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 0);
 			x.save().then(() => {
-				const newOvertime = [ ...this.state.late ];
+				const newOvertime = [ ...this.state.izin ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
-					overtime: newOvertime,
-					deleteMode: false
+					izin: newOvertime,
+					deleteMode: false,
+					loading: false
 				});
 			});
 		});
@@ -113,6 +121,27 @@ class UserProfile extends Component {
 		leader.id = Parse.User.current().get('leaderId').id;
 		query.equalTo('leaderId', leader);
 		query.equalTo('status', 3);
+		query.find().then((x) => {
+			console.log(x);
+			this.setState({ izin: x, loading: false });
+		});
+	}
+
+	handleFilter(e) {
+		e.preventDefault();
+		this.setState({ loading: true });
+		console.log(this.state.status);
+
+		const Izin = Parse.Object.extend('Izin');
+		const Leader = Parse.Object.extend('Leader');
+		const leader = new Leader();
+		const query = new Parse.Query(Izin);
+
+		console.log(Parse.User.current().get('leaderId').id);
+
+		leader.id = Parse.User.current().get('leaderId').id;
+		query.equalTo('leaderId', leader);
+		query.equalTo('status', parseInt(this.state.status));
 		query.find().then((x) => {
 			console.log(x);
 			this.setState({ izin: x, loading: false });
@@ -142,12 +171,14 @@ class UserProfile extends Component {
 					title="Reject confirmation"
 					handleHide={() => this.setState({ deleteMode: false })}
 					handleSave={this.handleReject}
-					body={'Delete trainee ' + this.state.fullnames + ' ?'}
+					loading={this.state.loading}
+					body={'Reject izin ' + this.state.fullnames + ' ?'}
 				/>
 				<ModalHandler
 					show={this.state.editMode}
 					title="Approve confirmation"
 					handleSave={this.handleApprove}
+					loading={this.state.loading}
 					handleHide={() => this.setState({ editMode: false })}
 					body={`Approve izin ${this.state.fullnames} ?`}
 				/>
@@ -160,97 +191,177 @@ class UserProfile extends Component {
 								content={
 									<div>
 										<Row>
+											<Col>
+												<Form
+													onSubmit={this.handleFilter}
+													style={{ marginBottom: '20px' }}
+												>
+													<Form.Group
+														as={Row}
+														controlId="formHorizontalEmail"
+													>
+														<Col sm={2}>
+															<p>Search by approval</p>
+														</Col>
+														<Col
+															sm={{ span: 2 }}
+															className="pull-right"
+														>
+															<Form.Control
+																as="select"
+																// defaultValue={1}
+																onChange={(e) => {
+																	console.log(e.target.value);
+																	this.setState({
+																		status: e.target.value
+																	});
+																}}
+															>
+																{[ 3, 1, 0 ].map((x) => (
+																	<option value={x}>
+																		{handleConvert(x)}
+																	</option>
+																))}
+															</Form.Control>
+														</Col>
+														<Col sm={{ span: 2 }}>
+															<Button
+																variant="primary"
+																type="submit"
+																disable={loading ? 'true' : 'false'}
+															>
+																<i className="fa fa-search" />{' '}
+																{loading ? 'Fetching...' : 'Search'}
+															</Button>
+														</Col>
+													</Form.Group>
+												</Form>
+											</Col>
+										</Row>
+										<Row>
 											{izin.length < 1 ? (
 												<Col md={12}>No data found...</Col>
 											) : (
-												izin.map((x, i) => (
-													<Col md={3}>
-														<UserCard
-															out={x.status}
-															bgImage={
-																<img
-																	src="https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400"
-																	alt="..."
-																/>
-															}
-															avatar={
-																x.attributes.attachFile ==
-																undefined ? (
-																	'https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400'
-																) : (
-																	x.attributes.attachFile.url()
-																)
-															}
-															name={x
-																.get('fullname')
-																.split(' ')
-																.slice(0, 2)
-																.join(' ')}
-															userName={x.get('descIzin')}
-															description={
-																<span>
-																	Alasan :{' '}
-																	{x.get('alasanIzin') !== '-' ||
-																	x.get('alasanIzin') ===
-																		undefined ? (
-																		x.get('alasanIzin')
-																	) : (
-																		'Surat terlampir'
-																	)}
-																	{/* <br />
-																	{x.dateOfBirth}
-																	<br />
-																	{x.phoneNumber} */}
-																</span>
-															}
-															socials={
-																<div>
-																	<OverlayTrigger
-																		placement="right"
-																		overlay={tooltip('Approve')}
-																	>
-																		<Button
-																			simple
-																			onClick={() => {
-																				this.setState({
-																					editMode: true,
-																					userId: x.id,
-																					userIndex: i,
-																					fullnames: x.get(
-																						'fullname'
-																					)
-																				});
-																			}}
-																		>
-																			<i className="fa fa-check" />
-																		</Button>
-																	</OverlayTrigger>
-																	<OverlayTrigger
-																		placement="right"
-																		overlay={tooltip('Reject')}
-																	>
-																		<Button
-																			simple
-																			onClick={(e) => {
-																				this.setState({
-																					editMode: true,
-																					userId: x.id,
-																					userIndex: i,
-																					fullnames: x.get(
-																						'fullname'
-																					)
-																				});
-																			}}
-																		>
-																			<i className="fa fa-close" />
-																		</Button>
-																	</OverlayTrigger>
-																</div>
-															}
-														/>
-													</Col>
-												))
-											)}
+												<Table striped hover>
+													<thead>
+														<tr>
+															<th>CHECK</th>
+															<th>NAME</th>
+															<th>NIP</th>
+															<th>START</th>
+															<th>END</th>
+															<th>TIME LAPSE</th>
+															<th>DISTANCE</th>
+															<th>PERCENTAGE</th>
+															<th>NOTES</th>
+														</tr>
+													</thead>
+													<tbody key={1}>
+														{izin.map((prop, key) => (
+															<tr key={key}>
+																<td>{key + 1}</td>
+																<td>{prop.recoName}</td>
+																<td>{prop.recoNip}</td>
+																<td>{prop.recoStart}</td>
+																<td>{prop.recoEnd}</td>
+																<td>{prop.recoTimeLapse}</td>
+																<td>
+																	{prop.recoDistance.toFixed(2)}
+																</td>
+																<td>{prop.recoPercentage}</td>
+																<td>{prop.recoNotes}</td>
+															</tr>
+														))}
+													</tbody>
+												</Table>
+												// <Col md={3}>
+												// 	<UserCard
+												// 		out={x.status}
+												// 		bgImage={
+												// 			<img
+												// 				src="https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400"
+												// 				alt="..."
+												// 			/>
+												// 		}
+												// 		avatar={
+												// 			x.attributes.attachFile ==
+												// 			undefined ? (
+												// 				'https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400'
+												// 			) : (
+												// 				x.attributes.attachFile.url()
+												// 			)
+												// 		}
+												// 		name={x
+												// 			.get('fullname')
+												// 			.split(' ')
+												// 			.slice(0, 2)
+												// 			.join(' ')}
+												// 		userName={x.get('descIzin')}
+												// 		description={
+												// 			<span>
+												// 				<strong>Alasan</strong>
+												// 				<br />
+												// 				{x.get('alasanIzin') !== '-' ||
+												// 				x.get('alasanIzin') ===
+												// 					undefined ? (
+												// 					x.get('alasanIzin')
+												// 				) : (
+												// 					'Surat terlampir'
+												// 				)}
+												// 				{/* <br />
+												// 				{x.dateOfBirth}
+												// 				<br />
+												// 				{x.phoneNumber} */}
+												// 			</span>
+												// 		}
+												// 		status={x.get('status')}
+												// 		socials={
+												// 			<div>
+												// 				<OverlayTrigger
+												// 					placement="right"
+												// 					overlay={tooltip('Approve')}
+												// 				>
+												// 					<Button
+												// 						simple
+												// 						onClick={() => {
+												// 							this.setState({
+												// 								editMode: true,
+												// 								userId: x.id,
+												// 								userIndex: i,
+												// 								fullnames: x.get(
+												// 									'fullname'
+												// 								)
+												// 							});
+												// 						}}
+												// 					>
+												// 						<i className="fa fa-check" />
+												// 					</Button>
+												// 				</OverlayTrigger>
+												// 				<OverlayTrigger
+												// 					placement="right"
+												// 					overlay={tooltip('Reject')}
+												// 				>
+												// 					<Button
+												// 						simple
+												// 						onClick={(e) => {
+												// 							this.setState({
+												// 								deleteMode: true,
+												// 								userId: x.id,
+												// 								userIndex: i,
+												// 								fullnames: x.get(
+												// 									'fullname'
+												// 								)
+												// 							});
+												// 						}}
+												// 					>
+												// 						<i className="fa fa-close" />
+												// 					</Button>
+												// 				</OverlayTrigger>
+												// 			</div>
+												// 		}
+												// 	/>
+												// </Col>
+											)}) )}
 										</Row>
 									</div>
 								}

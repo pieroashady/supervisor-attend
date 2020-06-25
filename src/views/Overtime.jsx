@@ -41,6 +41,7 @@ import ModalHandler from './Category/ModalHandler';
 import moment from 'moment';
 import DateTime from 'react-datetime';
 import { Link } from 'react-router-dom';
+import { handleConvert } from 'utils/converter';
 
 class Overtime extends Component {
 	constructor(props) {
@@ -51,6 +52,7 @@ class Overtime extends Component {
 			error: '',
 			userId: '',
 			fullnames: '',
+			status: 3,
 			userIndex: 0,
 			loading: false,
 			addMode: false,
@@ -63,6 +65,7 @@ class Overtime extends Component {
 		this.handleDelete = this.handleDelete.bind(this);
 		this.handleApprove = this.handleApprove.bind(this);
 		this.handleReject = this.handleReject.bind(this);
+		this.handleFilter = this.handleFilter.bind(this);
 	}
 
 	componentDidMount() {
@@ -85,17 +88,31 @@ class Overtime extends Component {
 			console.log(x);
 			this.setState({ overtime: x, loading: false });
 		});
-		// const data = {
-		// 	batch: 1
-		// };
-		// Axios.post(baseurl('trainee/batch'), data)
-		// 	.then((x) => {
-		// 		this.setState({ trainee: x.data, loading: false });
-		// 	})
-		// 	.catch((err) => this.setState({ error: err, loading: false }));
+	}
+
+	handleFilter(e) {
+		e.preventDefault();
+		this.setState({ loading: true });
+		console.log(this.state.status);
+
+		const Overtime = Parse.Object.extend('Overtime');
+		const Leader = Parse.Object.extend('Leader');
+		const leader = new Leader();
+		const query = new Parse.Query(Overtime);
+
+		console.log(Parse.User.current().get('leaderId').id);
+
+		leader.id = Parse.User.current().get('leaderId').id;
+		query.equalTo('leaderId', leader);
+		query.equalTo('status', parseInt(this.state.status));
+		query.find().then((x) => {
+			console.log(x);
+			this.setState({ overtime: x, loading: false });
+		});
 	}
 
 	handleApprove(e) {
+		this.setState({ loading: true });
 		const Overtime = Parse.Object.extend('Overtime');
 		const query = new Parse.Query(Overtime);
 
@@ -106,12 +123,14 @@ class Overtime extends Component {
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					overtime: newOvertime,
-					editMode: false
+					editMode: false,
+					loading: false
 				});
 			});
 		});
 	}
 	handleReject(e) {
+		this.setState({ loading: true });
 		const Overtime = Parse.Object.extend('Overtime');
 		const query = new Parse.Query(Overtime);
 
@@ -122,7 +141,8 @@ class Overtime extends Component {
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					overtime: newOvertime,
-					deleteMode: false
+					deleteMode: false,
+					loading: false
 				});
 			});
 		});
@@ -226,6 +246,19 @@ class Overtime extends Component {
 			.catch((err) => this.setState({ error: err, loading: false }));
 	}
 
+	handleConvert(key) {
+		switch (key) {
+			case 0:
+				return 'Rejected';
+			case 1:
+				return 'Approved';
+			case 3:
+				return 'All';
+			default:
+				break;
+		}
+	}
+
 	render() {
 		const { overtime, error, loading, batch } = this.state;
 		const {
@@ -248,12 +281,14 @@ class Overtime extends Component {
 					title="Reject confirmation"
 					handleHide={() => this.setState({ deleteMode: false })}
 					handleSave={this.handleReject}
+					loading={this.state.loading}
 					body={'Reject overtime ' + this.state.fullnames + ' ?'}
 				/>
 				<ModalHandler
 					show={this.state.editMode}
 					title="Approve confirmation"
 					handleSave={this.handleApprove}
+					loading={this.state.loading}
 					handleHide={() => this.setState({ editMode: false })}
 					body={'Approve overtime ' + this.state.fullnames + ' ?'}
 				/>
@@ -264,6 +299,54 @@ class Overtime extends Component {
 								title="Data overtime"
 								content={
 									<div>
+										<Row>
+											<Col>
+												<Form
+													onSubmit={this.handleFilter}
+													style={{ marginBottom: '20px' }}
+												>
+													<Form.Group
+														as={Row}
+														controlId="formHorizontalEmail"
+													>
+														<Col sm={2}>
+															<p>Search by approval</p>
+														</Col>
+														<Col
+															sm={{ span: 2 }}
+															className="pull-right"
+														>
+															<Form.Control
+																as="select"
+																// defaultValue={1}
+																onChange={(e) => {
+																	console.log(e.target.value);
+																	this.setState({
+																		status: e.target.value
+																	});
+																}}
+															>
+																{[ 3, 1, 0 ].map((x) => (
+																	<option value={x}>
+																		{handleConvert(x)}
+																	</option>
+																))}
+															</Form.Control>
+														</Col>
+														<Col sm={{ span: 2 }}>
+															<Button
+																variant="primary"
+																type="submit"
+																disable={loading ? 'true' : 'false'}
+															>
+																<i className="fa fa-search" />{' '}
+																{loading ? 'Fetching...' : 'Search'}
+															</Button>
+														</Col>
+													</Form.Group>
+												</Form>
+											</Col>
+										</Row>
 										<Row>
 											{overtime.length < 1 ? (
 												<Col md={12}>No data found...</Col>
@@ -303,6 +386,7 @@ class Overtime extends Component {
 																	</span>
 																</span>
 															}
+															status={x.get('status')}
 															socials={
 																<div>
 																	<OverlayTrigger
