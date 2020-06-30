@@ -30,14 +30,16 @@ import MasterCategory from 'views/Category/MasterCategory';
 import QuizList from 'views/Category/QuizList';
 import MasterContent from 'views/Content/MasterContent';
 import UserScore from 'views/Score/UserScore';
-import { User } from 'parse';
+import {
+	User
+} from 'parse';
 import Absen from 'views/Absen';
 import Overtime from 'views/Overtime';
 import Late from 'views/Late';
 import EarlyLeave from 'views/EarlyLeave';
+import ViewDetailEarly from 'views/ViewDetailEarly';
 
-const dashboardRoutes = [
-	{
+const dashboardRoutes = [{
 		path: '/absen',
 		name: 'Absen',
 		icon: 'pe-7s-users',
@@ -50,6 +52,14 @@ const dashboardRoutes = [
 		icon: 'pe-7s-repeat',
 		component: EarlyLeave,
 		layout: '/admin'
+	},
+	{
+		path: '/earlyleave/:objectId/detail',
+		name: 'Detail Early request',
+		icon: 'pe-7s-repeat',
+		component: ViewDetailEarly,
+		layout: '/admin',
+		invisible: true
 	},
 	{
 		path: '/late',

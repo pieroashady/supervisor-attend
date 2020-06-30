@@ -25,7 +25,9 @@ import {
 	FormControl,
 	Form,
 	Tooltip,
-	OverlayTrigger
+	OverlayTrigger,
+	Table,
+	Tab
 } from 'react-bootstrap';
 
 import { Card } from 'components/Card/Card.jsx';
@@ -285,126 +287,148 @@ class Absen extends Component {
 						<Col md={12}>
 							<Card
 								title="Data absen"
+								ctTableFullWidth
+								ctTableResponsive
 								content={
-									<div>
-										<Row>
-											{absence.length < 1 ? (
-												<Col md={12}>No data found...</Col>
-											) : (
-												absence.map((x, i) => (
-													<Col md={3}>
-														<UserCard
-															out={x.status}
-															bgImage={
-																<img
-																	src="https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400"
-																	alt="..."
-																/>
-															}
-															avatar={
-																x.attributes.selfieImage ==
-																undefined ? (
-																	'https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400'
-																) : (
-																	x.attributes.selfieImage.url()
-																)
-															}
-															name={slicename(x.get('fullname'))}
-															userName={''}
-															description={
-																<span>
-																	<span>
-																		<strong>
-																			Absen Masuk:
-																		</strong>
-																		<br />
-																		{moment(
-																			x
-																				.get('absenMasuk')
-																				.toString()
-																		).format(
-																			'DD/MM/YYYY [at] HH:mm:ss'
-																		)}
-																	</span>
-																	<br />
-																	<span>
-																		<strong>
-																			Absen Keluar:
-																		</strong>
-																		<br />
-																		{x.get('absenKeluar') ===
-																		undefined ? (
-																			'-'
-																		) : (
-																			moment(
-																				x
-																					.get(
-																						'absenKeluar'
-																					)
-																					.toString()
-																			).format(
-																				'DD/MM/YYYY [at] HH:mm:ss'
-																			)
-																		)}
-																	</span>
-																	{/* <br />
-																	{x.dateOfBirth}
-																	<br />
-																	{x.phoneNumber} */}
-																</span>
-															}
-															// socials={
-															// 	<div>
-															// 		{/* <OverlayTrigger
-															// 			placement="right"
-															// 			overlay={tooltip(
-															// 				'Lihat pengerjaan quiz'
-															// 			)}
-															// 		>
-															// 			<Link
-															// 				to={`/admin/quiz/${x.objectId}`}
-															// 			>
-															// 				<Button simple>
-															// 					<i className="fa fa-eye" />
-															// 				</Button>
-															// 			</Link>
-															// 		</OverlayTrigger> */}
-															// 		<OverlayTrigger
-															// 			placement="right"
-															// 			overlay={tooltip('Approve')}
-															// 		>
-															// 			<Button
-															// 				simple
-															// 				onClick={() => {
-															// 					this.handleEdit(
-															// 						x.objectId
-															// 					);
-															// 				}}
-															// 			>
-															// 				<i className="fa fa-check" />
-															// 			</Button>
-															// 		</OverlayTrigger>
-															// 		<OverlayTrigger
-															// 			placement="right"
-															// 			overlay={tooltip('Reject')}
-															// 		>
-															// 			<Button
-															// 				simple
-															// 				onClick={(e) => {
-															// 					console.log(x.id);
-															// 				}}
-															// 			>
-															// 				<i className="fa fa-close" />
-															// 			</Button>
-															// 		</OverlayTrigger>
-															// 	</div>
-															// }
-														/>
-													</Col>
-												))
-											)}
-										</Row>
-									</div>
+									<Table striped hover>
+										<thead>
+											<tr>
+												<th>No</th>
+												<th>Nama</th>
+												<th>Jam Masuk</th>
+												<th>Jam Keluar</th>
+											</tr>
+										</thead>
+										<tbody key={1}>
+											{absence.length < 1 ? <td className='center'>No data found...</td> : absence.map((prop, key) => (
+												<tr>
+													<td>{key + 1}</td>
+													<td>{prop.get('fullname')}</td>
+													<td>{prop.get('absenMasuk') === undefined ? '-' : moment(prop.get('absenMasuk')).format('DD/MM/YYYY [at] HH:mm:ss')}</td>
+													<td>{prop.get('absenKeluar') === undefined ? '-' : moment(prop.get('absenKeluar')).format('DD/MM/YYYY [at] HH:mm:ss')}</td>
+												</tr>
+											))}
+										</tbody>
+									</Table>
+									// <div>
+									// <Row>
+									// {absence.length < 1 ? (
+									// <Col md={12}>No data found...</Col>
+									// ) : (
+									// absence.map((x, i) => (
+									// <Col md={3}>
+									// <UserCard
+									// out={x.status}
+									// bgImage={
+									// <img
+									// src="https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400"
+									// alt="..."
+									// />
+									// }
+									// avatar={
+									// x.attributes.selfieImage ==
+									// undefined ? (
+									// 'https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400'
+									// ) : (
+									// x.attributes.selfieImage.url()
+									// )
+									// }
+									// name={slicename(x.get('fullname'))}
+									// userName={''}
+									// description={
+									// <span>
+									// <span>
+									// <strong>
+									// Absen Masuk:
+									// </strong>
+									// <br />
+									// {moment(
+									// x
+									// .get('absenMasuk')
+									// .toString()
+									// ).format(
+									// 'DD/MM/YYYY [at] HH:mm:ss'
+									// )}
+									// </span>
+									// <br />
+									// <span>
+									// <strong>
+									// Absen Keluar:
+									// </strong>
+									// <br />
+									// {x.get('absenKeluar') ===
+									// undefined ? (
+									// '-'
+									// ) : (
+									// moment(
+									// x
+									// .get(
+									// 'absenKeluar'
+									// )
+									// .toString()
+									// ).format(
+									// 'DD/MM/YYYY [at] HH:mm:ss'
+									// )
+									// )}
+									// </span>
+									// 	{/* <br />}
+									// {x.dateOfBirth}
+									// <br />
+									// {x.phoneNumber} */}
+									// </span>
+									// }
+									// socials={
+									// 	<div>
+									// 		{/* <OverlayTrigger
+									// 			placement="right"
+									// 			overlay={tooltip(
+									// 				'Lihat pengerjaan quiz'
+									// 			)}
+									// 		>
+									// 			<Link
+									// 				to={`/admin/quiz/${x.objectId}`}
+									// 			>
+									// 				<Button simple>
+									// 					<i className="fa fa-eye" />
+									// 				</Button>
+									// 			</Link>
+									// 		</OverlayTrigger> */}
+									// 		<OverlayTrigger
+									// 			placement="right"
+									// 			overlay={tooltip('Approve')}
+									// 		>
+									// 			<Button
+									// 				simple
+									// 				onClick={() => {
+									// 					this.handleEdit(
+									// 						x.objectId
+									// 					);
+									// 				}}
+									// 			>
+									// 				<i className="fa fa-check" />
+									// 			</Button>
+									// 		</OverlayTrigger>
+									// 		<OverlayTrigger
+									// 			placement="right"
+									// 			overlay={tooltip('Reject')}
+									// 		>
+									// 			<Button
+									// 				simple
+									// 				onClick={(e) => {
+									// 					console.log(x.id);
+									// 				}}
+									// 			>
+									// 				<i className="fa fa-close" />
+									// 			</Button>
+									// 		</OverlayTrigger>
+									// 	</div>
+									// }
+									// />
+									// </Col>
+									// ))
+									// )}
+									// </Row>
+									// </div>
 								}
 							/>
 						</Col>
