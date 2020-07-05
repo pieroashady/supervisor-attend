@@ -53,6 +53,7 @@ class EarlyLeave extends Component {
 			leave: [],
 			user: [],
 			data: [],
+			leaveArray: [],
 			error: '',
 			userId: '',
 			fullnames: '',
@@ -88,11 +89,19 @@ class EarlyLeave extends Component {
 		const leader = new Leader();
 		const query = new Parse.Query(Leave);
 
+		const d = new Date();
+		const start = new moment(d);
+		start.startOf('day');
+		const finish = new moment(start);
+		finish.add(1, 'day');
+
 		console.log(Parse.User.current().get('leaderId').id);
 
 		leader.id = Parse.User.current().get('leaderId').id;
 		query.equalTo('leaderId', leader);
 		query.equalTo('status', 3);
+		query.greaterThanOrEqualTo('createdAt', start.toDate());
+		query.lessThan('createdAt', finish.toDate());
 		query.find().then((x) => {
 			console.log(x);
 			this.setState({ leave: x, loading: false });
@@ -122,21 +131,86 @@ class EarlyLeave extends Component {
 		e.preventDefault();
 		this.setState({ loading: true });
 		console.log(this.state.status);
+		// alert(this.state.startDate);
 
 		const leave = Parse.Object.extend('EarlyLeave');
 		const Leader = Parse.Object.extend('Leader');
 		const leader = new Leader();
 		const query = new Parse.Query(leave);
 
-		console.log(Parse.User.current().get('leaderId').id);
+		// Daily
+		if (this.state.statusCalendar == 4) {
+			// const d = new Date();
+			const start = new moment(this.state.startDate);
+			start.startOf('day');
+			const finish = new moment(start);
+			finish.add(1, 'day');
 
-		leader.id = Parse.User.current().get('leaderId').id;
-		query.equalTo('leaderId', leader);
-		query.equalTo('status', parseInt(this.state.status));
-		query.find().then((x) => {
-			console.log(x);
-			this.setState({ leave: x, loading: false });
-		});
+			console.log(Parse.User.current().get('leaderId').id);
+
+			leader.id = Parse.User.current().get('leaderId').id;
+			query.equalTo('leaderId', leader);
+			query.equalTo('status', parseInt(this.state.status));
+			query.greaterThanOrEqualTo('time', start.toDate());
+			query.lessThan('time', finish.toDate());
+			query.find().then((x) => {
+				console.log(x);
+				this.setState({ leave: x, loading: false });
+			});
+		} else if (this.state.statusCalendar == 5) {
+			const start = new moment(this.state.startDate);
+			start.startOf('week');
+			const finish = new moment(start);
+			finish.add(1, 'week');
+			// const startDate = moment(this.state.startDate).startOf('isoWeek').toDate();
+			// // const endDate = moment(this.state.endDate).add(7, 'day').endOf('isoWeek').toDate();
+			// const endDate = moment(this.state.endDate).endOf('isoWeek').toDate();
+			leader.id = Parse.User.current().get('leaderId').id;
+			query.equalTo('leaderId', leader);
+			query.equalTo('status', parseInt(this.state.status));
+			query.greaterThanOrEqualTo('time', start.toDate());
+			query.lessThan('time', finish.toDate());
+			query.find().then((x) => {
+				console.log(x);
+				this.setState({ leave: x, loading: false });
+			});
+		} else if (this.state.statusCalendar == 6) {
+			// const startDate = moment(this.state.startDate).startOf('month').toDate();
+			// // const endDate = moment(this.state.endDate).add(7, 'day').endOf('month').toDate();
+			// const endDate = moment(this.state.endDate).endOf('month').toDate();
+			const start = new moment(this.state.startDate);
+			start.startOf('month');
+			const finish = new moment(start);
+			finish.add(1, 'month');
+
+			leader.id = Parse.User.current().get('leaderId').id;
+			query.equalTo('leaderId', leader);
+			query.equalTo('status', parseInt(this.state.status));
+			query.greaterThanOrEqualTo('time', start.toDate());
+			query.lessThan('time', finish.toDate());
+			query.find().then((x) => {
+				console.log(x);
+				this.setState({ leave: x, loading: false });
+			});
+		} else {
+			const d = new Date();
+			const start = new moment(d);
+			start.startOf('day');
+			const finish = new moment(start);
+			finish.add(1, 'day');
+
+			console.log(Parse.User.current().get('leaderId').id);
+
+			leader.id = Parse.User.current().get('leaderId').id;
+			query.equalTo('leaderId', leader);
+			query.equalTo('status', parseInt(this.state.status));
+			// query.greaterThanOrEqualTo('createdAt', start.toDate());
+			// query.lessThan('createdAt', finish.toDate());
+			query.find().then((x) => {
+				console.log(x);
+				this.setState({ leave: x, loading: false });
+			});
+		}
 	}
 
 	handleApprove(e) {
@@ -157,12 +231,51 @@ class EarlyLeave extends Component {
 			});
 		});
 	}
+
+	handleApproveAll(e) {
+		this.setState({ loading: true });
+		const leave = Parse.Object.extend('EarlyLeave');
+		const query = new Parse.Query(leave);
+
+		query.get(e).then((x) => {
+			x.set('status', 1);
+			x.save().then(() => {
+				const newOvertime = [...this.state.leave];
+				newOvertime.splice(this.state.userIndex, 1);
+				this.setState({
+					leave: newOvertime,
+					editMode: false,
+					loading: false
+				});
+			});
+		});
+	}
+
 	handleReject(e) {
 		this.setState({ loading: true });
 		const leave = Parse.Object.extend('EarlyLeave');
 		const query = new Parse.Query(leave);
 
 		query.get(this.state.userId).then((x) => {
+			x.set('status', 0);
+			x.save().then(() => {
+				const newOvertime = [...this.state.leave];
+				newOvertime.splice(this.state.userIndex, 1);
+				this.setState({
+					leave: newOvertime,
+					deleteMode: false,
+					loading: false
+				});
+			});
+		});
+	}
+
+	handleRejectAll(e) {
+		this.setState({ loading: true });
+		const leave = Parse.Object.extend('EarlyLeave');
+		const query = new Parse.Query(leave);
+
+		query.get(e).then((x) => {
 			x.set('status', 0);
 			x.save().then(() => {
 				const newOvertime = [...this.state.leave];
@@ -276,15 +389,88 @@ class EarlyLeave extends Component {
 
 
 	render() {
-		const { leave, error, loading, batch, setLeaveState } = this.state;
+		const { leave, error, loading, batch, startDate, endDate, statusCalendar } = this.state;
 
-		// setLeaveState(leave.map(d => {
-		// 	return {
-		// 		select: false,
-		// 		id: d.id,
-		// 		status: d.status
-		// 	};
-		// }));
+		// handleApproveAll(e) {
+		// 	this.setState({ loading: true });
+		// 	const leaveAll = Parse.Object.extend('EarlyLeave');
+		// 	const query = new Parse.Query(leaveAll);
+
+		// 	query.get(this.state.userId).then((x) => {
+		// 		x.set('status', 1);
+		// 		x.save().then(() => {
+		// 			const newOvertime = [...this.state.leaveAll];
+		// 			newOvertime.splice(this.state.userIndex, 1);
+		// 			this.setState({
+		// 				leaveAll: newOvertime,
+		// 				approveAllMode: false,
+		// 				loading: false
+		// 			});
+		// 		});
+		// 	});
+		// }
+
+		const ApproveAllIds = () => {
+
+			let arrayIds = [];
+			leave.forEach(d => {
+				if (d.select) {
+					arrayIds.push(d.id);
+					// arrayIds.push(d.get('fullname'));
+				}
+			});
+			// return arrayIds;
+			// console.log(arrayIds);
+
+			const leaveAll = Parse.Object.extend('EarlyLeave');
+			const query = new Parse.Query(leaveAll);
+			// console.log(query.get(arrayIds));
+			let totalData = 0;
+
+			// arrayIds.map((id) => {
+			// console.log(id);
+			// for (let i = 0; i < arrayIds.length; i++) {
+
+			arrayIds.map((id) => {
+				this.handleApproveAll(id);
+				// console.log(id);
+				// query.get(id).then((x) => {
+
+				// 	x.set('status', 1);
+				// 	x.save(id).then(() => {
+				// 		console.log('success');
+				// 		totalData++;
+				// 		if (totalData == arrayIds.length) {
+				// 			console.log('stop');
+				// 			id = '';
+				// 		}
+				// 		// const newOvertime = [...this.state.leaveAll];
+				// 		// newOvertime.splice(this.state.userIndex, 1);
+				// 		// this.setState({
+				// 		// 	leaveAll: newOvertime,
+				// 		// 	approveAllMode: false,
+				// 		// 	loading: false
+				// 		// });
+				// 	});
+				// });
+			});
+			// }
+			// });
+		}
+
+		const RejectAllIds = () => {
+			let arrayIds = [];
+			leave.forEach(d => {
+				if (d.select) {
+					arrayIds.push(d.id);
+					// arrayIds.push(d.get('fullname'));
+				}
+			});
+
+			arrayIds.map((id) => {
+				this.handleRejectAll(id);
+			});
+		}
 
 		// const { user, error, loading } = this.state;
 		// const id = this.props.match.params.id;
@@ -321,33 +507,23 @@ class EarlyLeave extends Component {
 				/>
 				<ModalHandler
 					show={this.state.approveAllMode}
-					title="Approve All Confirmation"
+					title="List Approve"
 					loading={this.state.loading}
 					handleHide={() => this.setState({ approveAllMode: false })}
-					body={'List Approve' + this.state.data + ' ?'}
+					body={'Sure Approve All Request?'}
 				/>
 				<ModalHandler
 					show={this.state.detailMode}
-					title="Detail Employee"
+					title="Foto Absen"
 					loading={this.state.loading}
 					handleHide={() => this.setState({ detailMode: false })}
-					body={
-						<UserCard
-							bgImage={
-								<img
-									src="https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400"
-									alt="..."
-								/>
-							}
-							avatar={(this.state.imageSelfies)}
-						/>
-					}
+					body={<img width="100%" height="100%" src={this.state.imageSelfies} />}
 				/>
 				<Container fluid>
 					<Row>
 						<Col md={12}>
 							<Card
-								title="List Employee"
+								title="Early Request"
 								ctTableFullWidth
 								ctTableResponsive
 								content={
@@ -363,7 +539,7 @@ class EarlyLeave extends Component {
 														controlId="formHorizontalEmail"
 													>
 														<Col sm={2}>
-															<p>Search by name</p>
+															<p>Search by</p>
 														</Col>
 														<Col
 															sm={{ span: 2 }}
@@ -386,6 +562,40 @@ class EarlyLeave extends Component {
 																))}
 															</Form.Control>
 														</Col>
+														<Col
+															sm={{ span: 2 }}
+															className="pull-right"
+														>
+															<Form.Control
+																as="select"
+																// defaultValue={1}
+																onChange={(e) => {
+																	console.log(e.target.value);
+																	this.setState({
+																		statusCalendar: e.target.value
+																	});
+																}}
+															>
+																<option value="">Pilih Kategori</option>
+																{[4, 5, 6].map((z) => (
+																	<option value={z}>
+																		{handleConvert(z)}
+																	</option>
+																))}
+															</Form.Control>
+														</Col>
+														<Col sm={{ span: 3 }} className="pull-right">
+															<Form.Control
+																type="date"
+																value={startDate}
+																onChange={(e) => {
+																	console.log(e.target.value);
+																	this.setState({
+																		startDate: e.target.value
+																	});
+																}}
+															/>
+														</Col>
 														<Col sm={{ span: 2 }}>
 															<Button
 																variant="primary"
@@ -398,118 +608,128 @@ class EarlyLeave extends Component {
 														</Col>
 													</Form.Group>
 													<Col sm={{ span: 0 }} className="float-none">
-														<Button className="m-1">
-															<i className="fa fa-check"></i> Approve All
+														<Button className="m-1" onClick={() => {
+															// this.setState({
+															// 	approveAllMode: true,
+															// 	dataApprove: ApproveAllIds()
+															// });
+															ApproveAllIds();
+														}}>
+															<i className="fa fa-check"></i> Approve
 															</Button>
-														<Button className="m-1">
-															<i className="fa fa-close"></i> Reject All
+														<Button className="m-1" onClick={() => {
+															RejectAllIds();
+														}}>
+															<i className="fa fa-close"></i> Reject
 															</Button>
 													</Col>
 												</Form>
 											</Col>
-
-											<Col md={12} sm={12} lg={12}>
-												<Table striped hover>
-													<thead>
-														<tr>
-															<OverlayTrigger placement="right" overlay={tooltip("Check all")}><th scope="col"><input type="checkbox" onChange={(e) => {
-																let checked = e.target.checked;
-																// setLeaveState(leave.map(d => {
-																// 	d.select = checked;
-																// 	return d;
-																// }));
-																this.setState(leave.map((d) => {
-																	d.select = checked;
-																	d.status = d.get('status');
-																	return d;
-																}));
-															}} /></th></OverlayTrigger>
-															<th>No</th>
-															<th>Full Name</th>
-															<th>Time</th>
-															<th>Reason</th>
-															<th>Action</th>
-														</tr>
-													</thead>
-													<tbody key={1}>
-														{leave.length < 1 ? <tr><td>No data found</td></tr> : leave.map((prop, key) => (
+											{leave.length < 1 ? <Col md={12}>No data found...</Col> :
+												<Col md={12} sm={12} lg={12}>
+													<Table striped hover>
+														<thead>
 															<tr>
-																<td scope="row"><input onChange={(event) => {
-																	let checked = event.target.checked;
-																	// setLeaveState(leave.map((data) => {
-																	// 	if (prop.id === data.id) {
-																	// 		data.select = checked;
-																	// 	}
-																	// 	return data;
+																<OverlayTrigger placement="right" overlay={tooltip("Check all")}><th scope="col"><input type="checkbox" onChange={(e) => {
+																	let checked = e.target.checked;
+																	// setLeaveState(leave.map(d => {
+																	// 	d.select = checked;
+																	// 	return d;
 																	// }));
-																	this.setState(leave.map((data) => {
-																		if (prop.id === data.id) {
-																			data.select = checked;
-																			data.status = prop.get('status');
-																		}
-																		return data;
-																		// console.log(data.status);
+																	this.setState(leave.map((d) => {
+																		d.select = checked;
+																		d.status = d.get('status');
+																		return d;
 																	}));
-																}} type="checkbox" checked={prop.select} /></td>
-																<td>{key + 1}</td>
-																<td>{prop.get('fullname')}</td>
-																<td>{moment(prop.get('time')).format('DD/MM/YYYY [at] HH:mm:ss')}</td>
-																<td>{prop.get('alasan')}</td>
-																<td out>
-																	{/* {prop.get('status') === 3 ? 'gagal' : 'berhasil'} */}
-																	<OverlayTrigger placement="right" overlay={tooltip("Detail")}>
-																		<Button className="btn btn-circle" onClick={() => {
-																			this.setState({
-																				detailMode: true,
-																				// userId: prop.id,
-																				// userIndex: i,
-																				imageSelfies: prop.get('imageSelfie') === undefined ? ('https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400') : (prop.attributes.imageSelfie.url()),
-																				times: prop.get('time'),
-																				fullnames: prop.get('fullname'),
-																				status: prop.get('status'),
-																				descIzin: prop.get('descIzin'),
-																				reasons: prop.get('alasan')
-																			});
-																		}}>
-																			<i className="fa fa-eye"></i>
-																		</Button>
-																	</OverlayTrigger>{' '}
-
-																	<OverlayTrigger placement="right" overlay={tooltip('Approve')}>
-																		<Button className="btn btn-circle" onClick={() => {
-																			this.setState({
-																				editMode: true,
-																				userId: prop.id,
-																				userIndex: key,
-																				fullnames: prop.get(
-																					'fullname'
-																				)
-																			});
-																		}}>
-																			<i className="fa fa-check" />
-																		</Button>
-																	</OverlayTrigger>{' '}
-
-																	<OverlayTrigger placement="right" overlay={tooltip('Reject')}>
-																		<Button className="btn btn-circle" onClick={(e) => {
-																			this.setState({
-																				deleteMode: true,
-																				userId: prop.id,
-																				userIndex: key,
-																				fullnames: prop.get(
-																					'fullname'
-																				)
-																			});
-																		}}>
-																			<i className="fa fa-close" />
-																		</Button>
-																	</OverlayTrigger>{' '}
-																</td>
+																}} /></th></OverlayTrigger>
+																<th>No</th>
+																<th>Full Name</th>
+																<th>Time</th>
+																<th>Reason</th>
+																<th>Action</th>
 															</tr>
-														))}
-													</tbody>
-												</Table>
-											</Col>
+														</thead>
+														<tbody key={1}>
+															{leave.length < 1 ? <tr><td>No data found</td></tr> : leave.map((prop, key) => (
+																<tr>
+																	<td scope="row"><input onChange={(event) => {
+																		let checked = event.target.checked;
+																		// setLeaveState(leave.map((data) => {
+																		// 	if (prop.id === data.id) {
+																		// 		data.select = checked;
+																		// 	}
+																		// 	return data;
+																		// }));
+																		this.setState(leave.map((data) => {
+																			if (prop.id === data.id) {
+																				data.select = checked;
+																				data.status = prop.get('status');
+																			}
+																			return data;
+																			// console.log(data.status);
+																		}));
+																	}} type="checkbox" checked={prop.select} /></td>
+																	<td>{key + 1}</td>
+																	<td>{prop.get('fullname')}</td>
+																	<td>{moment(prop.get('time')).format('DD/MM/YYYY [at] HH:mm:ss')}</td>
+																	<td>{prop.get('alasan')}</td>
+																	{prop.get('status') == 3 ?
+																		<td>
+																			<OverlayTrigger placement="right" overlay={tooltip("Detail")}>
+																				<Button className="btn btn-circle btn-warning mr-2" onClick={() => {
+																					this.setState({
+																						detailMode: true,
+																						// userId: prop.id,
+																						// userIndex: i,
+																						imageSelfies: prop.get('imageSelfie') === undefined ? ('https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400') : (prop.attributes.imageSelfie.url()),
+																						times: prop.get('time'),
+																						fullnames: prop.get('fullname'),
+																						status: prop.get('status'),
+																						descIzin: prop.get('descIzin'),
+																						reasons: prop.get('alasan')
+																					});
+																				}}>
+																					<i className="fa fa-eye"></i>
+																				</Button>
+																			</OverlayTrigger>
+
+																			<OverlayTrigger placement="right" overlay={tooltip('Approve')}>
+																				<Button className="btn btn-circle btn-warning mr-2" onClick={() => {
+																					this.setState({
+																						editMode: true,
+																						userId: prop.id,
+																						userIndex: key,
+																						fullnames: prop.get(
+																							'fullname'
+																						)
+																					});
+																				}}>
+																					<i className="fa fa-check" />
+																				</Button>
+																			</OverlayTrigger>
+
+																			<OverlayTrigger placement="right" overlay={tooltip('Reject')}>
+																				<Button className="btn btn-circle btn-danger" onClick={(e) => {
+																					this.setState({
+																						deleteMode: true,
+																						userId: prop.id,
+																						userIndex: key,
+																						fullnames: prop.get(
+																							'fullname'
+																						)
+																					});
+																				}}>
+																					<i className="fa fa-close" />
+																				</Button>
+																			</OverlayTrigger>
+																		</td>
+																		: prop.get('status') == 0 ? (<td>Rejected</td>) : (<td>Approved</td>)}
+																</tr>
+															))}
+														</tbody>
+													</Table>
+												</Col>
+											}
 										</Row>
 										<Row>
 

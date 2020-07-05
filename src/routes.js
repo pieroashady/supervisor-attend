@@ -37,7 +37,7 @@ import Absen from 'views/Absen';
 import Overtime from 'views/Overtime';
 import Late from 'views/Late';
 import EarlyLeave from 'views/EarlyLeave';
-import ViewDetailEarly from 'views/ViewDetailEarly';
+import Cuti from 'views/Cuti';
 
 const dashboardRoutes = [{
 		path: '/absen',
@@ -52,14 +52,6 @@ const dashboardRoutes = [{
 		icon: 'pe-7s-repeat',
 		component: EarlyLeave,
 		layout: '/admin'
-	},
-	{
-		path: '/earlyleave/:objectId/detail',
-		name: 'Detail Early request',
-		icon: 'pe-7s-repeat',
-		component: ViewDetailEarly,
-		layout: '/admin',
-		invisible: true
 	},
 	{
 		path: '/late',
@@ -80,6 +72,13 @@ const dashboardRoutes = [{
 		name: 'Izin',
 		icon: 'pe-7s-flag',
 		component: UserProfile,
+		layout: '/admin'
+	},
+	{
+		path: '/cuti',
+		name: 'Cuti',
+		icon: 'pe-7s-date',
+		component: Cuti,
 		layout: '/admin'
 	}
 ];

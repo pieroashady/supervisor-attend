@@ -44,6 +44,7 @@ import moment from 'moment';
 import DateTime from 'react-datetime';
 import { Link } from 'react-router-dom';
 import { slicename } from 'utils/slicename';
+import { handleConvert } from 'utils/converter';
 
 class Absen extends Component {
 	constructor(props) {
@@ -72,6 +73,7 @@ class Absen extends Component {
 			buttonLoading: false
 		};
 
+		this.handleFilterCalendar = this.handleFilterCalendar.bind(this);
 		this.handleSearch = this.handleSearch.bind(this);
 		this.handleAdd = this.handleAdd.bind(this);
 		this.handleDelete = this.handleDelete.bind(this);
@@ -81,6 +83,7 @@ class Absen extends Component {
 
 	componentDidMount() {
 		this.getTrainee();
+		// this.getTraineeHistory();
 	}
 
 	getTrainee() {
@@ -90,10 +93,18 @@ class Absen extends Component {
 		const leader = new Leader();
 		const query = new Parse.Query(Absence);
 
+		const d = new Date();
+		const start = new moment(d);
+		start.startOf('day');
+		const finish = new moment(start);
+		finish.add(1, 'day');
+
 		console.log(Parse.User.current().get('leaderId').id);
 
 		leader.id = Parse.User.current().get('leaderId').id;
 		query.equalTo('leaderId', leader);
+		query.greaterThanOrEqualTo('createdAt', start.toDate());
+		query.lessThan('createdAt', finish.toDate());
 		query.find().then((x) => {
 			console.log(x);
 			this.setState({ absence: x, loading: false });
@@ -106,6 +117,98 @@ class Absen extends Component {
 		// 		this.setState({ trainee: x.data, loading: false });
 		// 	})
 		// 	.catch((err) => this.setState({ error: err, loading: false }));
+	}
+
+	getTraineeHistory = () => {
+		this.setState({ loading: true });
+		const Absence = Parse.Object.extend('Absence');
+		const Leader = Parse.Object.extend('Leader');
+		const leader = new Leader();
+		const query = new Parse.Query(Absence);
+
+		const d = new Date();
+		const start = new moment(d);
+		start.startOf('day');
+		const finish = new moment(start);
+		finish.add(1, 'day');
+
+		console.log(Parse.User.current().get('leaderId').id);
+
+		leader.id = Parse.User.current().get('leaderId').id;
+		query.equalTo('leaderId', leader);
+		query.greaterThanOrEqualTo('createdAt', start.toDate());
+		query.lessThan('createdAt', finish.toDate());
+		query.find().then((x) => {
+			console.log(x);
+			this.setState({ absence: x, loading: false });
+		});
+		// const data = {
+		// 	batch: 1
+		// };
+		// Axios.post(baseurl('trainee/batch'), data)
+		// 	.then((x) => {
+		// 		this.setState({ trainee: x.data, loading: false });
+		// 	})
+		// 	.catch((err) => this.setState({ error: err, loading: false }));
+	}
+
+	// handleFilterCalendar(key) {
+	// 	switch (key) {
+	// 		case 0:
+	// 			return 'Monthly';
+	// 		case 1:
+	// 			return 'Weekly';
+	// 		case 3:
+	// 			return 'Daily';
+	// 		default:
+	// 			break;
+	// 	}
+	// }
+
+	handleFilterCalendar = (e) => {
+		e.preventDefault();
+		const Absence = Parse.Object.extend('Absence');
+		const Leader = Parse.Object.extend('Leader');
+		const leader = new Leader();
+		const query = new Parse.Query(Absence);
+
+		// Weekly
+		if (this.state.status == 5) {
+			const startDate = moment(this.state.startDate).startOf('isoWeek').toDate();
+			// const endDate = moment(this.state.endDate).add(7, 'day').endOf('isoWeek').toDate();
+			const endDate = moment(this.state.endDate).endOf('isoWeek').toDate();
+			leader.id = Parse.User.current().get('leaderId').id;
+			query.equalTo('leaderId', leader);
+			query.greaterThanOrEqualTo('absenMasuk', startDate);
+			query.lessThan('absenMasuk', endDate);
+			query.find().then((x) => {
+				console.log(x);
+				this.setState({ absence: x, loading: false });
+			});
+		} else if (this.state.status == 6) {
+			const startDate = moment(this.state.startDate).startOf('month').toDate();
+			const endDate = moment(this.state.endDate).endOf('month').toDate();
+			leader.id = Parse.User.current().get('leaderId').id;
+			query.equalTo('leaderId', leader);
+			query.greaterThanOrEqualTo('absenMasuk', startDate);
+			query.lessThan('absenMasuk', endDate);
+			query.find().then((x) => {
+				console.log(x);
+				this.setState({ absence: x, loading: false });
+			});
+		} else if (this.state.status == 4) {
+			const startDate = moment(this.state.startDate).startOf('day').toDate();
+			const endDate = moment(this.state.endDate).endOf('day').toDate();
+			leader.id = Parse.User.current().get('leaderId').id;
+			query.equalTo('leaderId', leader);
+			query.greaterThanOrEqualTo('absenMasuk', startDate);
+			query.lessThan('absenMasuk', endDate);
+			query.find().then((x) => {
+				console.log(x);
+				this.setState({ absence: x, loading: false });
+			});
+		}
+
 	}
 
 	handleAdd(e) {
@@ -263,7 +366,9 @@ class Absen extends Component {
 			pob,
 			phoneNumber,
 			fullname,
-			profile
+			profile,
+			startDate,
+			endDate,
 		} = this.state;
 		const tooltip = (msg) => <Tooltip id="button-tooltip">{msg}</Tooltip>;
 
@@ -278,38 +383,123 @@ class Absen extends Component {
 				/>
 				<ModalHandler
 					show={this.state.editMode}
-					title="Edit content"
+					title="Foto Absen"
 					handleHide={() => this.setState({ editMode: false })}
-					body={''}
+					body={<img width="100%" height="100%" src={this.state.fullnames} />}
 				/>
 				<Container fluid>
 					<Row>
 						<Col md={12}>
 							<Card
-								title="Data absen"
+								title="Data Absen"
 								ctTableFullWidth
 								ctTableResponsive
 								content={
-									<Table striped hover>
-										<thead>
-											<tr>
-												<th>No</th>
-												<th>Nama</th>
-												<th>Jam Masuk</th>
-												<th>Jam Keluar</th>
-											</tr>
-										</thead>
-										<tbody key={1}>
-											{absence.length < 1 ? <td className='center'>No data found...</td> : absence.map((prop, key) => (
+									<div>
+										<Col md={12}>
+											<Form onSubmit={this.handleFilterCalendar}>
+												<Form.Group as={Row} controlId={"formHorizontalEmail"}>
+													<Col sm={2}>
+														<p>Search by</p>
+													</Col>
+													<Col sm={{ span: 2 }} className="pull-right">
+														<Form.Control
+															as="select"
+															// defaultValue={1}
+															onChange={(e) => {
+																console.log(e.target.value);
+																this.setState({
+																	status: e.target.value
+																});
+															}}
+															required='true'
+														>
+															<option value="">Pilih Kategori</option>
+															{[4, 5, 6].map((x) => (
+																<option value={x}>
+																	{handleConvert(x)}
+																</option>
+															))}
+														</Form.Control>
+													</Col>
+													<Col sm={{ span: 3 }} className="pull-right">
+														<Form.Control
+															type="date"
+															value={startDate}
+															onChange={(e) => {
+																console.log(e.target.value);
+																this.setState({
+																	startDate: e.target.value
+																});
+															}}
+															required='true'
+														/>
+													</Col>
+													<Col sm={{ span: 3 }} className="pull-right">
+														<Form.Control
+															type="date"
+															value={endDate}
+															onChange={(e) => {
+																this.setState({ endDate: e.target.value })
+															}}
+															required
+														/>
+													</Col>
+													<Button
+														variant="primary"
+														type="submit"
+														disable={loading ? 'true' : 'false'}
+														className="mr-2 m-1"
+													// onClick={this.handleFilterCalendar}
+													>
+														<i className="fa fa-search" />{' '}
+														{loading ? 'Fetching...' : 'Searching'}
+													</Button>
+												</Form.Group>
+											</Form>
+										</Col>
+										<Table striped hover>
+											<thead>
 												<tr>
-													<td>{key + 1}</td>
-													<td>{prop.get('fullname')}</td>
-													<td>{prop.get('absenMasuk') === undefined ? '-' : moment(prop.get('absenMasuk')).format('DD/MM/YYYY [at] HH:mm:ss')}</td>
-													<td>{prop.get('absenKeluar') === undefined ? '-' : moment(prop.get('absenKeluar')).format('DD/MM/YYYY [at] HH:mm:ss')}</td>
+													<th>No</th>
+													<th>Nama</th>
+													<th>Jam Masuk</th>
+													<th>Jam Keluar</th>
+													<th>Action</th>
 												</tr>
-											))}
-										</tbody>
-									</Table>
+											</thead>
+											<tbody key={1}>
+												{absence.length < 1 ? <td className='center'>No data found...</td> : absence.map((prop, key) => (
+													<tr>
+														<td>{key + 1}</td>
+														<td>{prop.get('fullname')}</td>
+														<td>{prop.get('absenMasuk') === undefined ? '-' : moment(prop.get('absenMasuk')).format('DD/MM/YYYY [at] HH:mm:ss')}</td>
+														<td>{prop.get('absenKeluar') === undefined ? '-' : moment(prop.get('absenKeluar')).format('DD/MM/YYYY [at] HH:mm:ss')}</td>
+														<td>
+															<OverlayTrigger
+																placement="right"
+																overlay={tooltip(
+																	'Foto Absen'
+																)}
+															>
+																<Button
+																	className="btn-circle btn-warning mr-2"
+																	onClick={() => {
+																		this.setState({
+																			editMode: true,
+																			fullnames: prop.attributes.selfieImage.url()
+																		});
+																	}}
+																>
+																	<i className="fa fa-eye" />
+																</Button>
+															</OverlayTrigger>
+														</td>
+													</tr>
+												))}
+											</tbody>
+										</Table>
+									</div>
 									// <div>
 									// <Row>
 									// {absence.length < 1 ? (
