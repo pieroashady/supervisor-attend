@@ -425,7 +425,7 @@ class Cuti extends Component {
                                 content={
                                     <div>
                                         <Row>
-                                            <Col sm={6}>
+                                            <Col sm={12}>
                                                 <Form
                                                     onSubmit={this.handleFilter}
                                                     style={{ marginBottom: '20px' }}
@@ -434,8 +434,8 @@ class Cuti extends Component {
                                                         as={Row}
                                                         controlId="formHorizontalEmail"
                                                     >
-                                                        <Col sm={4}>
-                                                            <p>Search by approval</p>
+                                                        <Col sm={{ span: 2 }}>
+                                                            <p>Search by</p>
                                                         </Col>
                                                         <Col
                                                             sm={{ span: 2 }}
@@ -459,7 +459,7 @@ class Cuti extends Component {
                                                             </Form.Control>
                                                         </Col>
                                                         <Col
-                                                            sm={{ span: 2 }}
+                                                            sm={{ span: 3 }}
                                                             className="pull-right"
                                                         >
                                                             <Form.Control
@@ -492,7 +492,7 @@ class Cuti extends Component {
                                                                 }}
                                                             />
                                                         </Col>
-                                                        <Col sm={4}>
+                                                        <Col sm={{ span: 2 }}>
                                                             <Button
                                                                 variant="primary"
                                                                 type="submit"

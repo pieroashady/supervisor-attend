@@ -174,35 +174,48 @@ class Absen extends Component {
 
 		// Weekly
 		if (this.state.status == 5) {
-			const startDate = moment(this.state.startDate).startOf('isoWeek').toDate();
-			// const endDate = moment(this.state.endDate).add(7, 'day').endOf('isoWeek').toDate();
-			const endDate = moment(this.state.endDate).endOf('isoWeek').toDate();
+			const d = new Date();
+			const start = new moment(this.state.startDate);
+			start.startOf('week');
+			const finish = new moment(start);
+			finish.add(1, 'week');
+			// const startDate = moment(this.state.startDate).startOf('isoWeek').toDate();
+			// // const endDate = moment(this.state.endDate).add(7, 'day').endOf('isoWeek').toDate();
+			// const endDate = moment(this.state.endDate).endOf('isoWeek').toDate();
 			leader.id = Parse.User.current().get('leaderId').id;
 			query.equalTo('leaderId', leader);
-			query.greaterThanOrEqualTo('absenMasuk', startDate);
-			query.lessThan('absenMasuk', endDate);
+			query.greaterThanOrEqualTo('absenMasuk', start.toDate());
+			query.lessThan('absenMasuk', finish.toDate());
 			query.find().then((x) => {
 				console.log(x);
 				this.setState({ absence: x, loading: false });
 			});
 		} else if (this.state.status == 6) {
-			const startDate = moment(this.state.startDate).startOf('month').toDate();
-			const endDate = moment(this.state.endDate).endOf('month').toDate();
+			const start = new moment(this.state.startDate);
+			start.startOf('month');
+			const finish = new moment(start);
+			finish.add(1, 'month');
+			// const startDate = moment(this.state.startDate).startOf('month').toDate();
+			// const endDate = moment(this.state.endDate).endOf('month').toDate();
 			leader.id = Parse.User.current().get('leaderId').id;
 			query.equalTo('leaderId', leader);
-			query.greaterThanOrEqualTo('absenMasuk', startDate);
-			query.lessThan('absenMasuk', endDate);
+			query.greaterThanOrEqualTo('absenMasuk', start.toDate());
+			query.lessThan('absenMasuk', finish.toDate());
 			query.find().then((x) => {
 				console.log(x);
 				this.setState({ absence: x, loading: false });
 			});
 		} else if (this.state.status == 4) {
-			const startDate = moment(this.state.startDate).startOf('day').toDate();
-			const endDate = moment(this.state.endDate).endOf('day').toDate();
+			const start = new moment(this.state.startDate);
+			start.startOf('day');
+			const finish = new moment(start);
+			finish.add(1, 'day');
+			// const endDate = moment(this.state.endDate).endOf('day').toDate();
+			// const startDate = moment(this.state.startDate).startOf('day').toDate();
 			leader.id = Parse.User.current().get('leaderId').id;
 			query.equalTo('leaderId', leader);
-			query.greaterThanOrEqualTo('absenMasuk', startDate);
-			query.lessThan('absenMasuk', endDate);
+			query.greaterThanOrEqualTo('absenMasuk', start.toDate());
+			query.lessThan('absenMasuk', finish.toDate());
 			query.find().then((x) => {
 				console.log(x);
 				this.setState({ absence: x, loading: false });
@@ -435,7 +448,7 @@ class Absen extends Component {
 															required='true'
 														/>
 													</Col>
-													<Col sm={{ span: 3 }} className="pull-right">
+													{/* <Col sm={{ span: 3 }} className="pull-right">
 														<Form.Control
 															type="date"
 															value={endDate}
@@ -444,7 +457,7 @@ class Absen extends Component {
 															}}
 															required
 														/>
-													</Col>
+													</Col> */}
 													<Button
 														variant="primary"
 														type="submit"
@@ -453,7 +466,7 @@ class Absen extends Component {
 													// onClick={this.handleFilterCalendar}
 													>
 														<i className="fa fa-search" />{' '}
-														{loading ? 'Fetching...' : 'Searching'}
+														{loading ? 'Fetching...' : 'Search'}
 													</Button>
 												</Form.Group>
 											</Form>

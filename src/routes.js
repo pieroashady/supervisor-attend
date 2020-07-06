@@ -38,6 +38,8 @@ import Overtime from 'views/Overtime';
 import Late from 'views/Late';
 import EarlyLeave from 'views/EarlyLeave';
 import Cuti from 'views/Cuti';
+import PermintaanPerubahan from 'views/PermintaanPerubahan';
+import StatusChangeRequest from 'views/StatusPerubahan';
 
 const dashboardRoutes = [{
 		path: '/absen',
@@ -80,7 +82,22 @@ const dashboardRoutes = [{
 		icon: 'pe-7s-date',
 		component: Cuti,
 		layout: '/admin'
+	},
+	{
+		path: '/permintaan',
+		name: 'Change Request',
+		icon: 'pe-7s-date',
+		component: PermintaanPerubahan,
+		layout: '/admin'
+	},
+	{
+		path: '/statusrequest',
+		name: 'Status Request',
+		icon: 'pe-7s-date',
+		component: StatusChangeRequest,
+		layout: '/admin'
 	}
+
 ];
 
 export default dashboardRoutes;
