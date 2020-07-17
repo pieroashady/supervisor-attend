@@ -31,8 +31,8 @@ class AdminNavbarLinks extends Component {
 	}
 
 	handleLogout() {
-		let confirm = confirm('Anda akan logout dari sistem');
-		if (confirm) {
+		let confirmx = window.confirm('Anda akan logout dari sistem');
+		if (confirmx) {
 			Parse.User.logOut().then(() => {
 				localStorage.removeItem('sessionToken');
 				localStorage.removeItem('jwt');
@@ -74,11 +74,13 @@ class AdminNavbarLinks extends Component {
 						Account
 					</Nav.Link>
 				</Nav.Item>
-				<Nav.Item as="li">
+				<Nav.Item as="li" onClick={() => window.confirm('xx')}>
 					<Nav.Link
 						eventKey="link-2"
 						style={{ textAlign: 'center' }}
-						onClick={this.handleLogout}
+						onClick={() => {
+							window.confirm('test');
+						}}
 					>
 						Logout
 					</Nav.Link>
