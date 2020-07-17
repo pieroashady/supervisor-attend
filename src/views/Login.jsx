@@ -76,7 +76,7 @@ class Login extends Component {
 								}}
 							/>
 						</Form.Group>
-						<Button variant="primary" type="submit" disabled={loading ? true : false}>
+						<Button variant="primary" type="submit">
 							{loading ? (
 								<div>
 									<Spinner

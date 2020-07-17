@@ -31,12 +31,17 @@ class AdminNavbarLinks extends Component {
 	}
 
 	handleLogout() {
-		Parse.User.logOut().then(() => {
-			localStorage.removeItem('sessionToken');
-			localStorage.removeItem('jwt');
-			localStorage.removeItem('userInfo');
-			return createHashHistory().push('/login');
-		});
+		const confirm = confirm('Anda akan logout dari sistem');
+		if (confirm) {
+			Parse.User.logOut().then(() => {
+				localStorage.removeItem('sessionToken');
+				localStorage.removeItem('jwt');
+				localStorage.removeItem('userInfo');
+				return createHashHistory().push('/login');
+			});
+		} else {
+			return;
+		}
 	}
 
 	render() {
