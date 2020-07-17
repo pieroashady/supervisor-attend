@@ -31,7 +31,7 @@ class AdminNavbarLinks extends Component {
 	}
 
 	handleLogout() {
-		const confirm = confirm('Anda akan logout dari sistem');
+		let confirm = confirm('Anda akan logout dari sistem');
 		if (confirm) {
 			Parse.User.logOut().then(() => {
 				localStorage.removeItem('sessionToken');
