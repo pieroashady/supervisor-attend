@@ -74,13 +74,11 @@ class AdminNavbarLinks extends Component {
 						Account
 					</Nav.Link>
 				</Nav.Item>
-				<Nav.Item as="li" onClick={() => window.confirm('xx')}>
+				<Nav.Item as="li">
 					<Nav.Link
 						eventKey="link-2"
 						style={{ textAlign: 'center' }}
-						onClick={() => {
-							window.confirm('test');
-						}}
+						onClick={this.handleLogout}
 					>
 						Logout
 					</Nav.Link>
