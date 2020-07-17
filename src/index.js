@@ -38,13 +38,14 @@ import * as env from './env';
 
 Parse.initialize(env.APPLICATION_ID, env.JAVASCRIPT_KEY, env.MASTER_KEY);
 Parse.serverURL = env.SERVER_URL;
+Parse.fileKey = 'cd20f129-dbc2-4fa7-b320-3994fc05e83d';
 
 ReactDOM.render(
 	<BrowserRouter>
 		<Switch>
 			<PrivateRoute path="/admin" />
 			<Route path="/login" component={Login} />
-			<Redirect from="/" to="/admin/category" />
+			<Redirect from="/" to="/admin/absen" />
 			<Route path="/quiz" component={Quiz} exact />
 			<Route path="/enox" component={MainQuiz} />
 			<Route exact path="/traineez" component={ViewTrainee} />

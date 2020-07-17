@@ -18,7 +18,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import ChartistGraph from 'react-chartist';
-import { Grid, Row, Col } from 'react-bootstrap';
+import { Grid, Row, Col, Spinner } from 'react-bootstrap';
 
 import { Card } from 'components/Card/Card.jsx';
 import { StatsCard } from 'components/StatsCard/StatsCard.jsx';
@@ -37,51 +37,186 @@ import {
 } from 'variables/Variables.jsx';
 import { baseurl } from 'utils/baseurl';
 import Axios from 'axios';
+import moment from 'moment';
+import Parse from 'parse';
+import { Link } from 'react-router-dom';
 
 class Dashboard extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			totalTrainee: 0,
-			totalContent: 0,
-			totalQuiz: 0,
-			totalAbsensi: 0,
-			percentage: {}
+			totalAbsen: 0,
+			totalTerlambat: 0,
+			totalIzin: 0,
+			totalSakit: 0,
+			totalOvertime: 0,
+			totalRequest: 0,
+			percentage: {},
+			loading: false
 		};
 	}
 
 	componentDidMount() {
-		this.getTotalTrainee();
-		this.getTotalContent();
-		this.getTotalQuiz();
-		this.getPercentage();
+		this.getTotalAbsen();
+		this.getTotalTerlambat();
+		this.getTotalIzin();
+		this.getTotalRequest();
+		this.getTotalSakit();
+		this.getTotalOvertime();
 	}
 
-	getPercentage() {
-		Axios.get(baseurl('score/percentage')).then((x) => {
-			console.log(x);
-			this.setState({ percentage: x.data });
-		});
-	}
+	getPercentage() {}
 
-	getTotalTrainee() {
-		Axios.get(baseurl('trainee/total')).then((response) => {
-			console.log(response.data);
-			this.setState({ totalTrainee: response.data });
-		});
-	}
+	getTotalAbsen = () => {
+		this.setState({ loading: true });
+		const Absence = Parse.Object.extend('Absence');
+		const query = new Parse.Query(Absence);
 
-	getTotalQuiz() {
-		Axios.get(baseurl('category/total')).then((x) => {
-			this.setState({ totalQuiz: x.data });
-		});
-	}
+		const d = new Date();
+		const start = new moment(d);
+		start.startOf('day');
+		const finish = new moment(start);
+		finish.add(1, 'day');
 
-	getTotalContent() {
-		Axios.get(baseurl('content/total')).then((x) => {
-			this.setState({ totalContent: x.data });
-		});
-	}
+		query.greaterThanOrEqualTo('createdAt', start.toDate());
+		query.lessThan('createdAt', finish.toDate());
+
+		query
+			.count()
+			.then((x) => {
+				this.setState({ totalAbsen: x });
+			})
+			.catch(({ message }) => {
+				this.setState({ loading: false });
+				alert(message);
+				window.location.reload(false);
+			});
+	};
+
+	getTotalTerlambat = () => {
+		const Late = Parse.Object.extend('Late');
+		const query = new Parse.Query(Late);
+
+		const d = new Date();
+		const start = new moment(d);
+		start.startOf('day');
+		const finish = new moment(start);
+		finish.add(1, 'day');
+
+		query.greaterThanOrEqualTo('createdAt', start.toDate());
+		query.lessThan('createdAt', finish.toDate());
+
+		query
+			.count()
+			.then((x) => {
+				this.setState({ totalTerlambat: x });
+			})
+			.catch(({ message }) => {
+				this.setState({ loading: false });
+				alert(message);
+				window.location.reload(false);
+			});
+	};
+
+	getTotalIzin = () => {
+		const Izin = Parse.Object.extend('Izin');
+		const query = new Parse.Query(Izin);
+
+		const d = new Date();
+		const start = new moment(d);
+		start.startOf('day');
+		const finish = new moment(start);
+		finish.add(1, 'day');
+
+		query.greaterThanOrEqualTo('createdAt', start.toDate());
+		query.lessThan('createdAt', finish.toDate());
+		query.equalTo('statusIzin', 1);
+		query
+			.count()
+			.then((x) => {
+				this.setState({ totalIzin: x });
+			})
+			.catch(({ message }) => {
+				this.setState({ loading: false });
+				alert(message);
+				window.location.reload(false);
+			});
+	};
+
+	getTotalSakit = () => {
+		const Izin = Parse.Object.extend('Izin');
+		const query = new Parse.Query(Izin);
+
+		const d = new Date();
+		const start = new moment(d);
+		start.startOf('day');
+		const finish = new moment(start);
+		finish.add(1, 'day');
+
+		query.greaterThanOrEqualTo('createdAt', start.toDate());
+		query.lessThan('createdAt', finish.toDate());
+		query.equalTo('statusIzin', 2);
+		query
+			.count()
+			.then((x) => {
+				this.setState({ totalSakit: x });
+			})
+			.catch(({ message }) => {
+				this.setState({ loading: false });
+				alert(message);
+				window.location.reload(false);
+			});
+	};
+
+	getTotalRequest = () => {
+		const ChangeRequest = Parse.Object.extend('ChangeRequest');
+		const query = new Parse.Query(ChangeRequest);
+
+		// const d = new Date();
+		// 		const start = new moment(d);
+		// 		start.startOf('day');
+		// 		const finish = new moment(start);
+		// 		finish.add(1, 'day');
+
+		// 		query.greaterThanOrEqualTo('createdAt', start.toDate());
+		// 		query.lessThan('createdAt', finish.toDate());
+		query.equalTo('statusApprove', 0);
+		query
+			.count()
+			.then((x) => {
+				this.setState({ totalRequest: x });
+			})
+			.catch(({ message }) => {
+				this.setState({ loading: false });
+				alert(message);
+				window.location.reload(false);
+			});
+	};
+
+	getTotalOvertime = () => {
+		const Overtime = Parse.Object.extend('Overtime');
+		const query = new Parse.Query(Overtime);
+
+		const d = new Date();
+		const start = new moment(d);
+		start.startOf('day');
+		const finish = new moment(start);
+		finish.add(1, 'day');
+
+		query.greaterThanOrEqualTo('createdAt', start.toDate());
+		query.lessThan('createdAt', finish.toDate());
+		query.equalTo('statusIzin');
+		query
+			.count()
+			.then((x) => {
+				this.setState({ totalOvertime: x, loading: false });
+			})
+			.catch(({ message }) => {
+				this.setState({ loading: false });
+				alert(message);
+				window.location.reload(false);
+			});
+	};
 
 	createLegend(json) {
 		var legend = [];
@@ -94,74 +229,135 @@ class Dashboard extends Component {
 		return legend;
 	}
 	render() {
-		const { totalTrainee, totalAbsensi, totalContent, totalQuiz, percentage } = this.state;
+		const {
+			totalAbsen,
+			totalIzin,
+			totalOvertime,
+			totalRequest,
+			totalSakit,
+			totalTerlambat,
+			loading
+		} = this.state;
+		console.log(totalAbsen / (totalAbsen + totalTerlambat) * 100);
+
 		const dataPiex = {
-			labels: [ `${percentage.passed}%`, `${percentage.failed}%` ],
-			series: [ percentage.passed, percentage.failed ]
+			labels: [
+				totalAbsen === 0
+					? 'No Data'
+					: `${totalAbsen / (totalAbsen + totalTerlambat) * 100}%`,
+				totalTerlambat === 0
+					? 'No Data'
+					: `${totalTerlambat / (totalAbsen + totalTerlambat) * 100}%`
+			],
+			series: [
+				totalAbsen / (totalAbsen + totalTerlambat) * 100,
+				totalTerlambat / (totalAbsen + totalTerlambat) * 100
+			]
 		};
 
 		return (
 			<div className="content">
-				<Row>
-					<Col lg={3} sm={6}>
-						<StatsCard
-							bigIcon={<i className="pe-7s-graph2 text-success" />}
-							statsText="TRAINEE"
-							statsValue={totalTrainee}
-						/>
-					</Col>
-					<Col lg={3} sm={6}>
-						<StatsCard
-							bigIcon={<i className="pe-7s-graph2 text-danger" />}
-							statsText="CONTENT"
-							statsValue={totalContent}
-						/>
-					</Col>
-					<Col lg={3} sm={6}>
-						<StatsCard
-							bigIcon={<i className="pe-7s-graph2 text-primary" />}
-							statsText="QUIZ"
-							statsValue={totalQuiz}
-						/>
-					</Col>
-					<Col lg={3} sm={6}>
-						<StatsCard
-							bigIcon={<i className="pe-7s-graph2 text-danger" />}
-							statsText="ABSENSI"
-							statsValue="45"
-						/>
-					</Col>
-				</Row>
-				<Row>
-					<Col lg={6} sm={6}>
-						<Card
-							statsIcon="fa fa-clock-o"
-							title="Presentase kelulusan quiz"
-							category="Last Campaign Performance"
-							stats="Campaign sent 2 days ago"
-							content={
-								<div id="chartPreferences" className="ct-chart ct-perfect-fourth">
-									<ChartistGraph data={dataPiex} type="Pie" />
-								</div>
-							}
-							legend={<div className="legend">{this.createLegend(legendPie)}</div>}
-						/>
-					</Col>
-					<Col lg={6} sm={6}>
-						<Card
-							statsIcon="fa fa-clock-o"
-							title="Presentase keterlambatan hari ini"
-							category="Last Campaign Performance"
-							stats="Campaign sent 2 days ago"
-							content={
-								<div id="chartPreferences" className="ct-chart ct-perfect-fourth">
-									<ChartistGraph data={dataPiex} type="Pie" />
-								</div>
-							}
-							legend={<div className="legend">{this.createLegend(legendPie)}</div>}
-						/>
-					</Col>
-				</Row>
+				{loading ? (
+					<div style={{ textAlign: 'center' }}>
+						<Spinner animation="border" role="status" />
+						<p>Sedang memuat...</p>
+					</div>
+				) : (
+					<div>
+						<Row>
+							<Col lg={4} sm={12} md={12}>
+								<Link to="/admin/absen" style={{ color: 'inherit' }}>
+									<StatsCard
+										bigIcon={<i className="pe-7s-graph2 text-success" />}
+										statsText="Tepat waktu"
+										statsValue={totalAbsen}
+									/>
+								</Link>
+							</Col>
+							<Col lg={4} sm={12} md={12}>
+								<Link to="/admin/late" style={{ color: 'inherit' }}>
+									<StatsCard
+										bigIcon={<i className="pe-7s-graph2 text-danger" />}
+										statsText="Terlambat"
+										statsValue={totalTerlambat}
+									/>
+								</Link>
+							</Col>
+							<Col lg={4} sm={12} md={12}>
+								<Link to="/admin/izin" style={{ color: 'inherit' }}>
+									<StatsCard
+										bigIcon={<i className="pe-7s-graph2 text-primary" />}
+										statsText="Request izin"
+										statsValue={totalIzin}
+									/>
+								</Link>
+							</Col>
+						</Row>
+						<Row>
+							<Col lg={4} sm={12} md={12}>
+								<Link to="/admin/statusrequest" style={{ color: 'inherit' }}>
+									<StatsCard
+										bigIcon={<i className="pe-7s-graph2 text-dark" />}
+										statsText="Request Waiting"
+										statsValue={totalRequest}
+									/>
+								</Link>
+							</Col>
+							<Col lg={4} sm={12} md={12}>
+								<Link to="/admin/overtime" style={{ color: 'inherit' }}>
+									<StatsCard
+										bigIcon={<i className="pe-7s-graph2 text-info" />}
+										statsText="Request overtime"
+										statsValue={totalOvertime}
+									/>
+								</Link>
+							</Col>
+							<Col lg={4} sm={12} md={12}>
+								<Link to="/admin/cuti" style={{ color: 'inherit' }}>
+									<StatsCard
+										bigIcon={<i className="pe-7s-graph2 text-warning" />}
+										statsText="Request cuti"
+										statsValue={totalSakit}
+									/>
+								</Link>
+							</Col>
+						</Row>
+						<Row className="justify-content-center">
+							<Col lg={6} sm={6} className="justify-content-center">
+								<Card
+									statsIcon="fa fa-clock-o"
+									title="Presentase keterlambatan hari ini"
+									category="Last Campaign Performance"
+									stats={
+										'Dimuat pada ' +
+										moment().format('D MMMM YYYY [pukul] HH:mm:ss')
+									}
+									content={
+										<div
+											id="chartPreferences"
+											className="ct-chart ct-perfect-fourth"
+										>
+											<ChartistGraph
+												data={
+													totalAbsen / (totalAbsen + totalTerlambat) ===
+													NaN ? (
+														'No Data'
+													) : (
+														dataPiex
+													)
+												}
+												type="Pie"
+											/>
+										</div>
+									}
+									legend={
+										<div className="legend">{this.createLegend(legendPie)}</div>
+									}
+								/>
+							</Col>
+						</Row>
+					</div>
+				)}
 			</div>
 		);
 	}

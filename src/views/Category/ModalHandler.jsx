@@ -18,14 +18,30 @@ class ModalHandler extends Component {
 					</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>{this.props.body}</Modal.Body>
-				<Modal.Footer>
+				{this.props.footer ? (
+					<Modal.Footer>
+						<Button variant="secondary" onClick={this.props.handleHide}>
+							Cancel
+						</Button>
+						<Button variant="primary" onClick={this.props.handleSave}>
+							{this.props.loading ? (
+								'Please wait...'
+							) : (
+								`${this.props.saveText || 'Yes'}`
+							)}
+						</Button>
+					</Modal.Footer>
+				) : (
+					''
+				)}
+				{/* <Modal.Footer>
 					<Button variant="secondary" onClick={this.props.handleHide}>
 						Cancel
 					</Button>
 					<Button variant="primary" onClick={this.props.handleSave}>
 						{this.props.loading ? 'Please wait...' : 'Yes'}
 					</Button>
-				</Modal.Footer>
+				</Modal.Footer> */}
 			</Modal>
 		);
 	}

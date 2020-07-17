@@ -64,7 +64,8 @@ class Overtime extends Component {
 			checkId: [],
 			checkOne: false,
 			lampiran: '',
-			photoMode: false
+			photoMode: false,
+			alasan: ''
 		};
 
 		this.handleSearch = this.handleSearch.bind(this);
@@ -101,6 +102,7 @@ class Overtime extends Component {
 		query.greaterThanOrEqualTo('createdAt', start.toDate());
 		query.lessThan('createdAt', finish.toDate());
 		query.find().then((x) => {
+			x.map((y) => (y.select = false));
 			console.log(x);
 			this.setState({ overtime: x, loading: false });
 		});
@@ -127,6 +129,7 @@ class Overtime extends Component {
 		// query.greaterThanOrEqualTo('createdAt', start.toDate());
 		// query.lessThan('createdAt', finish.toDate());
 		query.find().then((x) => {
+			x.map((y) => (y.select = false));
 			console.log(x);
 			this.setState({ overtime: x, loading: false });
 		});
@@ -141,24 +144,6 @@ class Overtime extends Component {
 		const Leader = Parse.Object.extend('Leader');
 		const leader = new Leader();
 		const query = new Parse.Query(Overtime);
-
-		// const d = new Date();
-		// const start = new moment(d);
-		// start.startOf('day');
-		// const finish = new moment(start);
-		// finish.add(1, 'day');
-
-		// console.log(Parse.User.current().get('leaderId').id);
-
-		// leader.id = Parse.User.current().get('leaderId').id;
-		// query.equalTo('leaderId', leader);
-		// query.equalTo('status', parseInt(this.state.status));
-		// // query.greaterThanOrEqualTo('createdAt', start.toDate());
-		// // query.lessThan('createdAt', finish.toDate());
-		// query.find().then((x) => {
-		// 	console.log(x);
-		// 	this.setState({ overtime: x, loading: false });
-		// });
 
 		if (this.state.statusCalendar == 4) {
 			// const d = new Date();
@@ -175,6 +160,7 @@ class Overtime extends Component {
 			query.greaterThanOrEqualTo('time', start.toDate());
 			query.lessThan('time', finish.toDate());
 			query.find().then((x) => {
+				x.map((y) => (y.select = false));
 				console.log(x);
 				this.setState({ overtime: x, loading: false });
 			});
@@ -192,6 +178,7 @@ class Overtime extends Component {
 			query.greaterThanOrEqualTo('time', start.toDate());
 			query.lessThan('time', finish.toDate());
 			query.find().then((x) => {
+				x.map((y) => (y.select = false));
 				console.log(x);
 				this.setState({ overtime: x, loading: false });
 			});
@@ -210,6 +197,7 @@ class Overtime extends Component {
 			query.greaterThanOrEqualTo('time', start.toDate());
 			query.lessThan('time', finish.toDate());
 			query.find().then((x) => {
+				x.map((y) => (y.select = false));
 				console.log(x);
 				this.setState({ overtime: x, loading: false });
 			});
@@ -228,6 +216,7 @@ class Overtime extends Component {
 			// query.greaterThanOrEqualTo('createdAt', start.toDate());
 			// query.lessThan('createdAt', finish.toDate());
 			query.find().then((x) => {
+				x.map((y) => (y.select = false));
 				console.log(x);
 				this.setState({ overtime: x, loading: false });
 			});
@@ -251,7 +240,7 @@ class Overtime extends Component {
 
 		checkId.map((id) => {
 			this.handleRejectAll(id);
-		})
+		});
 	};
 
 	handleApprove(e) {
@@ -262,7 +251,7 @@ class Overtime extends Component {
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 1);
 			x.save().then(() => {
-				const newOvertime = [...this.state.overtime];
+				const newOvertime = [ ...this.state.overtime ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					overtime: newOvertime,
@@ -281,7 +270,7 @@ class Overtime extends Component {
 		query.get(e).then((x) => {
 			x.set('status', 1);
 			x.save().then(() => {
-				const newOvertime = [...this.state.overtime];
+				const newOvertime = [ ...this.state.overtime ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					overtime: newOvertime,
@@ -293,14 +282,16 @@ class Overtime extends Component {
 	}
 
 	handleReject(e) {
+		e.preventDefault();
 		this.setState({ loading: true });
 		const Overtime = Parse.Object.extend('Overtime');
 		const query = new Parse.Query(Overtime);
 
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 0);
+			x.set('alasanReject', this.state.alasan);
 			x.save().then(() => {
-				const newOvertime = [...this.state.overtime];
+				const newOvertime = [ ...this.state.overtime ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					overtime: newOvertime,
@@ -319,7 +310,7 @@ class Overtime extends Component {
 		query.get(e).then((x) => {
 			x.set('status', 0);
 			x.save().then(() => {
-				const newOvertime = [...this.state.overtime];
+				const newOvertime = [ ...this.state.overtime ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					overtime: newOvertime,
@@ -335,8 +326,8 @@ class Overtime extends Component {
 		let collecId = [];
 
 		overtime.map((x) => {
-			x.isChecked = e.target.checked;
-			if (x.isChecked) {
+			x.select = e.target.checked;
+			if (x.select) {
 				collecId.push(x.id);
 			} else {
 				collecId = [];
@@ -345,7 +336,9 @@ class Overtime extends Component {
 			return x;
 		});
 
-		this.setState({ overtime: overtime, checkId: collecId }, () => console.log(this.state.checkId));
+		this.setState({ overtime: overtime, checkId: collecId }, () =>
+			console.log(this.state.checkId)
+		);
 	}
 
 	handleChildCheck(e) {
@@ -356,11 +349,11 @@ class Overtime extends Component {
 			console.log('bandingkan', x.id === e.target.value);
 			if (x.id === e.target.value) {
 				console.log('sama');
-				x.isChecked = e.target.checked;
-				if (x.isChecked) {
+				x.select = e.target.checked;
+				if (x.select) {
 					this.setState(
 						(prevState) => ({
-							checkId: [...this.state.checkId, checked]
+							checkId: [ ...this.state.checkId, checked ]
 						}),
 						() => console.log(this.state.checkId)
 					);
@@ -518,7 +511,28 @@ class Overtime extends Component {
 					handleHide={() => this.setState({ deleteMode: false })}
 					handleSave={this.handleReject}
 					loading={this.state.loading}
-					body={'Reject overtime ' + this.state.fullnames + ' ?'}
+					body={
+						<div>
+							<p>{'Reject overtime ' + this.state.fullnames + ' ?'}</p>
+							<Form onSubmit={this.handleReject}>
+								<Form.Group controlId="formAlasan">
+									<Form.Control
+										as="textarea"
+										required={true}
+										placeholder="Masukkan alasan reject"
+										onChange={(e) => this.setState({ alasan: e.target.value })}
+									/>
+								</Form.Group>
+								<Button
+									variant={this.state.alasan === '' ? 'default' : 'primary'}
+									type="submit"
+									disabled={this.state.alasan === '' ? true : false}
+								>
+									Submit
+								</Button>
+							</Form>
+						</div>
+					}
 				/>
 				<ModalHandler
 					show={this.state.editMode}
@@ -526,6 +540,7 @@ class Overtime extends Component {
 					handleSave={this.handleApprove}
 					loading={this.state.loading}
 					handleHide={() => this.setState({ editMode: false })}
+					footer={true}
 					body={'Approve overtime ' + this.state.fullnames + ' ?'}
 				/>
 				<ModalHandler
@@ -572,7 +587,7 @@ class Overtime extends Component {
 																	});
 																}}
 															>
-																{[3, 1, 0].map((x) => (
+																{[ 3, 1, 0 ].map((x) => (
 																	<option value={x}>
 																		{handleConvert(x)}
 																	</option>
@@ -589,19 +604,25 @@ class Overtime extends Component {
 																onChange={(e) => {
 																	console.log(e.target.value);
 																	this.setState({
-																		statusCalendar: e.target.value
+																		statusCalendar:
+																			e.target.value
 																	});
 																}}
 															>
-																<option value="">Pilih Kategori</option>
-																{[4, 5, 6].map((z) => (
+																<option value="">
+																	Pilih Kategori
+																</option>
+																{[ 4, 5, 6 ].map((z) => (
 																	<option value={z}>
 																		{handleConvert(z)}
 																	</option>
 																))}
 															</Form.Control>
 														</Col>
-														<Col sm={{ span: 3 }} className="pull-right">
+														<Col
+															sm={{ span: 3 }}
+															className="pull-right"
+														>
 															<Form.Control
 																type="date"
 																value={startDate}
@@ -627,30 +648,39 @@ class Overtime extends Component {
 												</Form>
 											</Col>
 										</Row>
-										<Col sm={{ span: 0 }} className="float-none">
-											<Button
-												variant="primary"
-												type="submit"
-												disable={loading ? 'true' : 'false'}
-												className="mr-2 m-1"
-												onClick={this.approveChecked}
-											>
-												<i className="fa fa-check" />{' '}
-												{loading ? 'Fetching...' : 'Approve'}
-											</Button>
-											<Button
-												variant="primary"
-												type="submit"
-												className="m-1"
-												disable={loading ? 'true' : 'false'}
-												onClick={this.rejectChecked}
-											>
-												<i className="fa fa-close" />{' '}
-												{loading ? 'Fetching...' : 'Reject'}
-											</Button>
-										</Col>
+										{overtime.length === 0 ? (
+											''
+										) : !overtime[0].select ? (
+											''
+										) : (
+											<Col sm={{ span: 0 }} className="float-none">
+												<Button
+													variant="primary"
+													type="submit"
+													disable={loading ? 'true' : 'false'}
+													className="mr-2 m-1"
+													onClick={this.approveChecked}
+												>
+													<i className="fa fa-check" />{' '}
+													{loading ? 'Fetching...' : 'Approve'}
+												</Button>
+												<Button
+													variant="primary"
+													type="submit"
+													className="m-1"
+													disable={loading ? 'true' : 'false'}
+													onClick={this.rejectChecked}
+												>
+													<i className="fa fa-close" />{' '}
+													{loading ? 'Fetching...' : 'Reject'}
+												</Button>
+											</Col>
+										)}
+
 										<Row>
-											{overtime.length < 1 ? (<Col md={12}>No data found...</Col>) : (
+											{overtime.length < 1 ? (
+												<Col md={12}>No data found...</Col>
+											) : (
 												<Col md={12}>
 													<Table striped hover>
 														<thead>
@@ -658,7 +688,9 @@ class Overtime extends Component {
 																<th>
 																	<Form.Check
 																		type="checkbox"
-																		onClick={this.handleAllCheck}
+																		onClick={
+																			this.handleAllCheck
+																		}
 																	/>
 																</th>
 																<th>NAME</th>
@@ -674,15 +706,16 @@ class Overtime extends Component {
 																		<Form.Check
 																			type="checkbox"
 																			value={prop.id}
-																			checked={prop.isChecked}
+																			checked={prop.select}
 																			onChange={
-																				this.handleChildCheck
+																				this
+																					.handleChildCheck
 																			}
-																		// onChange={(e) => {
-																		//  const checked =
-																		//      e.target.checked;
+																			// onChange={(e) => {
+																			//  const checked =
+																			//      e.target.checked;
 
-																		// }}
+																			// }}
 																		/>
 																	</td>
 																	<td>{prop.get('fullname')}</td>
@@ -690,33 +723,38 @@ class Overtime extends Component {
 																	<td>
 																		{moment(
 																			prop.get('time')
-																		).format('DD/MM/YYYY [at] HH:mm:ss')}
+																		).format(
+																			'DD/MM/YYYY [at] HH:mm:ss'
+																		)}
 																	</td>
-																	{prop.get('status') == 3 ?
+																	{prop.get('status') == 3 ? (
 																		<td>
-																			{prop.attributes.imageSelfie ==
-																				undefined ? (
-																					''
-																				) : (
-																					<OverlayTrigger
-																						placement="right"
-																						overlay={tooltip(
-																							'Foto Absen'
-																						)}
-																					>
-																						<Button
-																							className="btn-circle btn-warning mr-2"
-																							onClick={() => {
-																								this.setState({
+																			{prop.attributes
+																				.imageSelfie ==
+																			undefined ? (
+																				''
+																			) : (
+																				<OverlayTrigger
+																					placement="right"
+																					overlay={tooltip(
+																						'Lihat foto'
+																					)}
+																				>
+																					<Button
+																						className="btn-circle btn-primary mr-1"
+																						onClick={() => {
+																							this.setState(
+																								{
 																									photoMode: true,
 																									lampiran: prop.attributes.imageSelfie.url()
-																								});
-																							}}
-																						>
-																							<i className="fa fa-eye" />
-																						</Button>
-																					</OverlayTrigger>
-																				)}
+																								}
+																							);
+																						}}
+																					>
+																						<i className="fa fa-eye" />
+																					</Button>
+																				</OverlayTrigger>
+																			)}
 																			<OverlayTrigger
 																				placement="right"
 																				overlay={tooltip(
@@ -724,16 +762,19 @@ class Overtime extends Component {
 																				)}
 																			>
 																				<Button
-																					className="btn-circle btn-warning mr-2"
+																					className="btn-circle btn-warning mr-1"
 																					onClick={() => {
-																						this.setState({
-																							editMode: true,
-																							userId: prop.id,
-																							userIndex: key,
-																							fullnames: prop.get(
-																								'fullname'
-																							)
-																						});
+																						this.setState(
+																							{
+																								editMode: true,
+																								userId:
+																									prop.id,
+																								userIndex: key,
+																								fullnames: prop.get(
+																									'fullname'
+																								)
+																							}
+																						);
 																					}}
 																				>
 																					<i className="fa fa-check" />
@@ -741,26 +782,37 @@ class Overtime extends Component {
 																			</OverlayTrigger>
 																			<OverlayTrigger
 																				placement="right"
-																				overlay={tooltip('Reject')}
+																				overlay={tooltip(
+																					'Reject'
+																				)}
 																			>
 																				<Button
 																					className="btn-circle btn-danger"
-																					onClick={(e) => {
-																						this.setState({
-																							deleteMode: true,
-																							userId: prop.id,
-																							userIndex: key,
-																							fullnames: prop.get(
-																								'fullname'
-																							)
-																						});
+																					onClick={(
+																						e
+																					) => {
+																						this.setState(
+																							{
+																								deleteMode: true,
+																								userId:
+																									prop.id,
+																								userIndex: key,
+																								fullnames: prop.get(
+																									'fullname'
+																								)
+																							}
+																						);
 																					}}
 																				>
 																					<i className="fa fa-close" />
 																				</Button>
 																			</OverlayTrigger>
 																		</td>
-																		: prop.get('status') == 0 ? (<td>Rejected</td>) : <td>Approved</td>}
+																	) : prop.get('status') == 0 ? (
+																		<td>Rejected</td>
+																	) : (
+																		<td>Approved</td>
+																	)}
 																</tr>
 															))}
 														</tbody>

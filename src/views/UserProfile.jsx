@@ -47,7 +47,8 @@ class UserProfile extends Component {
 			checkId: [],
 			checkOne: false,
 			lampiran: '',
-			photoMode: false
+			photoMode: false,
+			alasan: ''
 		};
 
 		this.handleApprove = this.handleApprove.bind(this);
@@ -66,8 +67,8 @@ class UserProfile extends Component {
 		let collecId = [];
 
 		izin.map((x) => {
-			x.isChecked = e.target.checked;
-			if (x.isChecked) {
+			x.select = e.target.checked;
+			if (x.select) {
 				collecId.push(x.id);
 			} else {
 				collecId = [];
@@ -87,11 +88,11 @@ class UserProfile extends Component {
 			console.log('bandingkan', x.id === e.target.value);
 			if (x.id === e.target.value) {
 				console.log('sama');
-				x.isChecked = e.target.checked;
-				if (x.isChecked) {
+				x.select = e.target.checked;
+				if (x.select) {
 					this.setState(
 						(prevState) => ({
-							checkId: [...this.state.checkId, checked]
+							checkId: [ ...this.state.checkId, checked ]
 						}),
 						() => console.log(this.state.checkId)
 					);
@@ -122,31 +123,6 @@ class UserProfile extends Component {
 
 		checkId.map((id) => {
 			this.handleApproveAll(id);
-			// console.log(id);
-			//query.equalTo('objectId', id);
-			// query.get(id).then((x) => {
-			// 	// x.set('status', 1);
-			// 	// x.save().then((x) => {
-			// 	//  console.log('success');
-			// 	// });
-			// 	console.log(x);
-			// });
-			// query
-			//  .get(id)
-			//  .then((x) => {
-			//      x.set('status', 1);
-			//      x
-			//          .save()
-			//          .then((x) => {
-			//              console.log('success');
-			//              totalData++;
-			//              if (totalData == checkIdLength) {
-			//                  console.log('stop');
-			//                  this.setState({ checkId: [] });
-			//              }
-			//          })
-			//          .catch((err) => this.setState({ error: err }));
-			//  })
 		});
 	};
 
@@ -155,7 +131,7 @@ class UserProfile extends Component {
 
 		checkId.map((id) => {
 			this.handleRejectAll(id);
-		})
+		});
 	};
 
 	handleApprove(e) {
@@ -166,7 +142,7 @@ class UserProfile extends Component {
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 1);
 			x.save().then(() => {
-				const newOvertime = [...this.state.izin];
+				const newOvertime = [ ...this.state.izin ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					izin: newOvertime,
@@ -185,7 +161,7 @@ class UserProfile extends Component {
 		query.get(e).then((x) => {
 			x.set('status', 1);
 			x.save().then(() => {
-				const newOvertime = [...this.state.izin];
+				const newOvertime = [ ...this.state.izin ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					izin: newOvertime,
@@ -197,14 +173,16 @@ class UserProfile extends Component {
 	}
 
 	handleReject(e) {
+		e.preventDefault();
 		this.setState({ loading: false });
 		const Izin = Parse.Object.extend('Izin');
 		const query = new Parse.Query(Izin);
 
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 0);
+			x.set('alasanReject', this.state.alasan);
 			x.save().then(() => {
-				const newOvertime = [...this.state.izin];
+				const newOvertime = [ ...this.state.izin ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					izin: newOvertime,
@@ -223,7 +201,7 @@ class UserProfile extends Component {
 		query.get(e).then((x) => {
 			x.set('status', 0);
 			x.save().then(() => {
-				const newOvertime = [...this.state.izin];
+				const newOvertime = [ ...this.state.izin ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					izin: newOvertime,
@@ -258,6 +236,7 @@ class UserProfile extends Component {
 		query.lessThan('createdAt', finish.toDate());
 		query.find().then((x) => {
 			console.log(x);
+			x.map((y) => (y.select = false));
 			this.setState({ izin: x, loading: false });
 		});
 	}
@@ -308,13 +287,17 @@ class UserProfile extends Component {
 			query.equalTo('statusIzin', 1);
 			query.greaterThanOrEqualTo('date', start.toDate());
 			query.lessThan('date', finish.toDate());
-			query.find().then((x) => {
-				console.log(x);
-				this.setState({ izin: x, loading: false });
-			}).catch((error) => {
-				this.setState({ loading: false });
-				console.log(error);
-			});
+			query
+				.find()
+				.then((x) => {
+					x.map((y) => (y.select = false));
+					console.log(x);
+					this.setState({ izin: x, loading: false });
+				})
+				.catch((error) => {
+					this.setState({ loading: false });
+					console.log(error);
+				});
 		} else if (this.state.statusCalendar == 5) {
 			const start = new moment(this.state.startDate);
 			start.startOf('week');
@@ -329,13 +312,17 @@ class UserProfile extends Component {
 			query.equalTo('statusIzin', 1);
 			query.greaterThanOrEqualTo('date', start.toDate());
 			query.lessThan('date', finish.toDate());
-			query.find().then((x) => {
-				console.log(x);
-				this.setState({ izin: x, loading: false });
-			}).catch((error) => {
-				this.setState({ loading: false });
-				console.log(error);
-			});
+			query
+				.find()
+				.then((x) => {
+					x.map((y) => (y.select = false));
+					console.log(x);
+					this.setState({ izin: x, loading: false });
+				})
+				.catch((error) => {
+					this.setState({ loading: false });
+					console.log(error);
+				});
 		} else if (this.state.statusCalendar == 6) {
 			// const startDate = moment(this.state.startDate).startOf('month').toDate();
 			// // const endDate = moment(this.state.endDate).add(7, 'day').endOf('month').toDate();
@@ -351,13 +338,17 @@ class UserProfile extends Component {
 			query.equalTo('statusIzin', 1);
 			query.greaterThanOrEqualTo('date', start.toDate());
 			query.lessThan('date', finish.toDate());
-			query.find().then((x) => {
-				console.log(x);
-				this.setState({ izin: x, loading: false });
-			}).catch((error) => {
-				this.setState({ loading: false });
-				console.log(error);
-			});
+			query
+				.find()
+				.then((x) => {
+					console.log(x);
+					x.map((y) => (y.select = false));
+					this.setState({ izin: x, loading: false });
+				})
+				.catch((error) => {
+					this.setState({ loading: false });
+					console.log(error);
+				});
 		} else {
 			const d = new Date();
 			const start = new moment(d);
@@ -373,13 +364,17 @@ class UserProfile extends Component {
 			query.equalTo('statusIzin', 1);
 			// query.greaterThanOrEqualTo('createdAt', start.toDate());
 			// query.lessThan('createdAt', finish.toDate());
-			query.find().then((x) => {
-				console.log(x);
-				this.setState({ izin: x, loading: false });
-			}).catch((error) => {
-				this.setState({ loading: false });
-				console.log(error);
-			});
+			query
+				.find()
+				.then((x) => {
+					x.map((y) => (y.select = false));
+					console.log(x);
+					this.setState({ izin: x, loading: false });
+				})
+				.catch((error) => {
+					this.setState({ loading: false });
+					console.log(error);
+				});
 		}
 	}
 
@@ -404,12 +399,13 @@ class UserProfile extends Component {
 		return (
 			<div className="content">
 				<ModalHandler
-					show={this.state.deleteMode}
-					title="Reject confirmation"
+					show={this.state.editMode}
+					title="Approve confirmation"
 					handleHide={() => this.setState({ deleteMode: false })}
 					handleSave={this.handleReject}
 					loading={this.state.loading}
-					body={'Reject izin ' + this.state.fullnames + ' ?'}
+					footer={true}
+					body={'Approve izin ' + this.state.fullnames + ' ?'}
 				/>
 				<ModalHandler
 					show={this.state.deleteMode}
@@ -417,7 +413,29 @@ class UserProfile extends Component {
 					handleHide={() => this.setState({ deleteMode: false })}
 					handleSave={this.handleReject}
 					loading={this.state.loading}
-					body={'Reject izin ' + this.state.fullnames + ' ?'}
+					footer={false}
+					body={
+						<div>
+							<p>{'Reject izin ' + this.state.fullnames + ' ?'}</p>
+							<Form onSubmit={this.handleReject}>
+								<Form.Group controlId="formAlasan">
+									<Form.Control
+										as="textarea"
+										required={true}
+										placeholder="Masukkan alasan reject"
+										onChange={(e) => this.setState({ alasan: e.target.value })}
+									/>
+								</Form.Group>
+								<Button
+									variant={this.state.alasan === '' ? 'default' : 'primary'}
+									type="submit"
+									disabled={this.state.alasan === '' ? true : false}
+								>
+									Submit
+								</Button>
+							</Form>
+						</div>
+					}
 				/>
 				<ModalHandler
 					size="lg"
@@ -466,7 +484,7 @@ class UserProfile extends Component {
 																	});
 																}}
 															>
-																{[3, 1, 0].map((x) => (
+																{[ 3, 1, 0 ].map((x) => (
 																	<option value={x}>
 																		{handleConvert(x)}
 																	</option>
@@ -483,19 +501,25 @@ class UserProfile extends Component {
 																onChange={(e) => {
 																	console.log(e.target.value);
 																	this.setState({
-																		statusCalendar: e.target.value
+																		statusCalendar:
+																			e.target.value
 																	});
 																}}
 															>
-																<option value="">Pilih Kategori</option>
-																{[4, 5, 6].map((z) => (
+																<option value="">
+																	Pilih Kategori
+																</option>
+																{[ 4, 5, 6 ].map((z) => (
 																	<option value={z}>
 																		{handleConvert(z)}
 																	</option>
 																))}
 															</Form.Control>
 														</Col>
-														<Col sm={{ span: 3 }} className="pull-right">
+														<Col
+															sm={{ span: 3 }}
+															className="pull-right"
+														>
 															<Form.Control
 																type="date"
 																value={startDate}
@@ -521,243 +545,272 @@ class UserProfile extends Component {
 												</Form>
 											</Col>
 										</Row>
-										<Col sm={{ span: 0 }} className="float-none">
-											<Button
-												variant="primary"
-												type="submit"
-												disable={loading ? 'true' : 'false'}
-												className="mr-2 m-1"
-												onClick={this.approveChecked}
-											>
-												<i className="fa fa-check" />{' '}
-												{loading ? 'Fetching...' : 'Approve'}
-											</Button>
-											<Button
-												variant="primary"
-												type="submit"
-												className="m-1"
-												disable={loading ? 'true' : 'false'}
-												onClick={this.rejectChecked}
-											>
-												<i className="fa fa-close" />{' '}
-												{loading ? 'Fetching...' : 'Reject'}
-											</Button>
-										</Col>
+										{izin.length === 0 ? (
+											''
+										) : !izin[0].select ? (
+											''
+										) : (
+											<Col sm={{ span: 0 }} className="float-none">
+												<Button
+													variant="primary"
+													type="submit"
+													disable={loading ? 'true' : 'false'}
+													className="mr-2 m-1"
+													onClick={this.approveChecked}
+												>
+													<i className="fa fa-check" />{' '}
+													{loading ? 'Fetching...' : 'Approve'}
+												</Button>
+												<Button
+													variant="primary"
+													type="submit"
+													className="m-1"
+													disable={loading ? 'true' : 'false'}
+													onClick={this.rejectChecked}
+												>
+													<i className="fa fa-close" />{' '}
+													{loading ? 'Fetching...' : 'Reject'}
+												</Button>
+											</Col>
+										)}
+
 										<Row>
 											{izin.length < 1 ? (
 												<Col md={12}>No data found...</Col>
 											) : (
-													<Col md={12}>
-														<Table striped hover>
-															<thead>
-																<tr>
-																	<th>
+												<Col md={12}>
+													<Table striped hover>
+														<thead>
+															<tr>
+																<th>
+																	<Form.Check
+																		type="checkbox"
+																		onClick={
+																			this.handleAllCheck
+																		}
+																	/>
+																</th>
+																<th>NAME</th>
+																<th>DESKRIPSI IZIN</th>
+																<th>ALASAN IZIN</th>
+																<th>DARI</th>
+																<th>SAMPAI</th>
+																<th>ACTION</th>
+															</tr>
+														</thead>
+														<tbody key={1}>
+															{izin.map((prop, key) => (
+																<tr key={key}>
+																	<td>
 																		<Form.Check
 																			type="checkbox"
-																			onClick={this.handleAllCheck}
-																		/>
-																	</th>
-																	<th>NAME</th>
-																	<th>DESKRIPSI IZIN</th>
-																	<th>ALASAN IZIN</th>
-																	<th>DARI</th>
-																	<th>SAMPAI</th>
-																	<th>ACTION</th>
-																</tr>
-															</thead>
-															<tbody key={1}>
-																{izin.map((prop, key) => (
-																	<tr key={key}>
-																		<td>
-																			<Form.Check
-																				type="checkbox"
-																				value={prop.id}
-																				checked={prop.isChecked}
-																				onChange={
-																					this.handleChildCheck
-																				}
+																			value={prop.id}
+																			checked={prop.select}
+																			onChange={
+																				this
+																					.handleChildCheck
+																			}
 																			// onChange={(e) => {
 																			//  const checked =
 																			//      e.target.checked;
 
 																			// }}
-																			/>
-																		</td>
-																		<td>{prop.get('fullname')}</td>
-																		<td>{prop.get('descIzin')}</td>
-																		<td>{prop.get('alasanIzin')}</td>
+																		/>
+																	</td>
+																	<td>{prop.get('fullname')}</td>
+																	<td>{prop.get('descIzin')}</td>
+																	<td>
+																		{prop.get('alasanIzin')}
+																	</td>
+																	<td>
+																		{moment(
+																			prop.get('dari')
+																		).format('DD/MM/YYYY')}
+																	</td>
+																	<td>
+																		{moment(
+																			prop.get('sampai')
+																		).format('DD/MM/YYYY')}
+																	</td>
+																	{prop.get('status') == 3 ? (
 																		<td>
-																			{moment(
-																				prop.get('dari')
-																			).format('DD/MM/YYYY')}
-																		</td>
-																		<td>
-																			{moment(
-																				prop.get('sampai')
-																			).format('DD/MM/YYYY')}
-																		</td>
-																		{prop.get('status') == 3 ?
-																			<td>
-																				{prop.attributes.attachFile ==
-																					undefined ? (
-																						''
-																					) : (
-																						<OverlayTrigger
-																							placement="right"
-																							overlay={tooltip(
-																								'Lampiran'
-																							)}
-																						>
-																							<Button
-																								className="btn-circle btn-warning mr-2"
-																								onClick={() => {
-																									this.setState({
-																										photoMode: true,
-																										lampiran: prop.attributes.attachFile.url()
-																									});
-																								}}
-																							>
-																								<i className="fa fa-eye" />
-																							</Button>
-																						</OverlayTrigger>
-																					)}
+																			{prop.attributes
+																				.attachFile ==
+																			undefined ? (
+																				''
+																			) : (
 																				<OverlayTrigger
 																					placement="right"
 																					overlay={tooltip(
-																						'Approve'
+																						'Lampiran'
 																					)}
 																				>
 																					<Button
-																						className="btn-circle btn-warning mr-2"
+																						className="btn-circle btn-primary mr-2"
 																						onClick={() => {
-																							this.setState({
+																							this.setState(
+																								{
+																									photoMode: true,
+																									lampiran: prop.attributes.attachFile.url()
+																								}
+																							);
+																						}}
+																					>
+																						<i className="fa fa-eye" />
+																					</Button>
+																				</OverlayTrigger>
+																			)}
+																			<OverlayTrigger
+																				placement="right"
+																				overlay={tooltip(
+																					'Approve'
+																				)}
+																			>
+																				<Button
+																					className="btn-circle btn-warning mr-2"
+																					onClick={() => {
+																						this.setState(
+																							{
 																								editMode: true,
-																								userId: prop.id,
+																								userId:
+																									prop.id,
 																								userIndex: key,
 																								fullnames: prop.get(
 																									'fullname'
 																								)
-																							});
-																						}}
-																					>
-																						<i className="fa fa-check" />
-																					</Button>
-																				</OverlayTrigger>
-																				<OverlayTrigger
-																					placement="right"
-																					overlay={tooltip('Reject')}
+																							}
+																						);
+																					}}
 																				>
-																					<Button
-																						className="btn-circle btn-danger"
-																						onClick={(e) => {
-																							this.setState({
+																					<i className="fa fa-check" />
+																				</Button>
+																			</OverlayTrigger>
+																			<OverlayTrigger
+																				placement="right"
+																				overlay={tooltip(
+																					'Reject'
+																				)}
+																			>
+																				<Button
+																					className="btn-circle btn-danger"
+																					onClick={(
+																						e
+																					) => {
+																						this.setState(
+																							{
 																								deleteMode: true,
-																								userId: prop.id,
+																								userId:
+																									prop.id,
 																								userIndex: key,
 																								fullnames: prop.get(
 																									'fullname'
 																								)
-																							});
-																						}}
-																					>
-																						<i className="fa fa-close" />
-																					</Button>
-																				</OverlayTrigger>
-																			</td>
-																			: prop.get('status') == 0 ? (<td>Rejected</td>) : (<td>Approved</td>)}
-																	</tr>
-																))}
-															</tbody>
-														</Table>
-													</Col>
-													// <Col md={3}>
-													//  <UserCard
-													//      out={x.status}
-													//      bgImage={
-													//          <img
-													//              src="https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400"
-													//              alt="..."
-													//          />
-													//      }
-													//      avatar={
-													//          x.attributes.attachFile ==
-													//          undefined ? (
-													//              'https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400'
-													//          ) : (
-													//              x.attributes.attachFile.url()
-													//          )
-													//      }
-													//      name={x
-													//          .get('fullname')
-													//          .split(' ')
-													//          .slice(0, 2)
-													//          .join(' ')}
-													//      userName={x.get('descIzin')}
-													//      description={
-													//          <span>
-													//              <strong>Alasan</strong>
-													//              <br />
-													//              {x.get('alasanIzin') !== '-' ||
-													//              x.get('alasanIzin') ===
-													//                  undefined ? (
-													//                  x.get('alasanIzin')
-													//              ) : (
-													//                  'Surat terlampir'
-													//              )}
-													//              {/* <br />
-													//              {x.dateOfBirth}
-													//              <br />
-													//              {x.phoneNumber} */}
-													//          </span>
-													//      }
-													//      status={x.get('status')}
-													//      socials={
-													//          <div>
-													//              <OverlayTrigger
-													//                  placement="right"
-													//                  overlay={tooltip('Approve')}
-													//              >
-													//                  <Button
-													//                      simple
-													//                      onClick={() => {
-													//                          this.setState({
-													//                              editMode: true,
-													//                              userId: x.id,
-													//                              userIndex: i,
-													//                              fullnames: x.get(
-													//                                  'fullname'
-													//                              )
-													//                          });
-													//                      }}
-													//                  >
-													//                      <i className="fa fa-check" />
-													//                  </Button>
-													//              </OverlayTrigger>
-													//              <OverlayTrigger
-													//                  placement="right"
-													//                  overlay={tooltip('Reject')}
-													//              >
-													//                  <Button
-													//                      simple
-													//                      onClick={(e) => {
-													//                          this.setState({
-													//                              deleteMode: true,
-													//                              userId: x.id,
-													//                              userIndex: i,
-													//                              fullnames: x.get(
-													//                                  'fullname'
-													//                              )
-													//                          });
-													//                      }}
-													//                  >
-													//                      <i className="fa fa-close" />
-													//                  </Button>
-													//              </OverlayTrigger>
-													//          </div>
-													//      }
-													//  />
-													// </Col>
-												)}
+																							}
+																						);
+																					}}
+																				>
+																					<i className="fa fa-close" />
+																				</Button>
+																			</OverlayTrigger>
+																		</td>
+																	) : prop.get('status') == 0 ? (
+																		<td>Rejected</td>
+																	) : (
+																		<td>Approved</td>
+																	)}
+																</tr>
+															))}
+														</tbody>
+													</Table>
+												</Col>
+												// <Col md={3}>
+												//  <UserCard
+												//      out={x.status}
+												//      bgImage={
+												//          <img
+												//              src="https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400"
+												//              alt="..."
+												//          />
+												//      }
+												//      avatar={
+												//          x.attributes.attachFile ==
+												//          undefined ? (
+												//              'https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400'
+												//          ) : (
+												//              x.attributes.attachFile.url()
+												//          )
+												//      }
+												//      name={x
+												//          .get('fullname')
+												//          .split(' ')
+												//          .slice(0, 2)
+												//          .join(' ')}
+												//      userName={x.get('descIzin')}
+												//      description={
+												//          <span>
+												//              <strong>Alasan</strong>
+												//              <br />
+												//              {x.get('alasanIzin') !== '-' ||
+												//              x.get('alasanIzin') ===
+												//                  undefined ? (
+												//                  x.get('alasanIzin')
+												//              ) : (
+												//                  'Surat terlampir'
+												//              )}
+												//              {/* <br />
+												//              {x.dateOfBirth}
+												//              <br />
+												//              {x.phoneNumber} */}
+												//          </span>
+												//      }
+												//      status={x.get('status')}
+												//      socials={
+												//          <div>
+												//              <OverlayTrigger
+												//                  placement="right"
+												//                  overlay={tooltip('Approve')}
+												//              >
+												//                  <Button
+												//                      simple
+												//                      onClick={() => {
+												//                          this.setState({
+												//                              editMode: true,
+												//                              userId: x.id,
+												//                              userIndex: i,
+												//                              fullnames: x.get(
+												//                                  'fullname'
+												//                              )
+												//                          });
+												//                      }}
+												//                  >
+												//                      <i className="fa fa-check" />
+												//                  </Button>
+												//              </OverlayTrigger>
+												//              <OverlayTrigger
+												//                  placement="right"
+												//                  overlay={tooltip('Reject')}
+												//              >
+												//                  <Button
+												//                      simple
+												//                      onClick={(e) => {
+												//                          this.setState({
+												//                              deleteMode: true,
+												//                              userId: x.id,
+												//                              userIndex: i,
+												//                              fullnames: x.get(
+												//                                  'fullname'
+												//                              )
+												//                          });
+												//                      }}
+												//                  >
+												//                      <i className="fa fa-close" />
+												//                  </Button>
+												//              </OverlayTrigger>
+												//          </div>
+												//      }
+												//  />
+												// </Col>
+											)}
 										</Row>
 									</div>
 								}

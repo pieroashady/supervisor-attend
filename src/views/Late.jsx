@@ -64,7 +64,8 @@ class Late extends Component {
 			checkId: [],
 			checkOne: false,
 			lampiran: '',
-			photoMode: false
+			photoMode: false,
+			alasan: ''
 		};
 
 		this.handleSearch = this.handleSearch.bind(this);
@@ -101,6 +102,7 @@ class Late extends Component {
 		query.greaterThanOrEqualTo('createdAt', start.toDate());
 		query.lessThan('createdAt', finish.toDate());
 		query.find().then((x) => {
+			x.map((y) => (y.select = false));
 			console.log(x);
 			this.setState({ late: x, loading: false });
 		});
@@ -150,6 +152,7 @@ class Late extends Component {
 			query.greaterThanOrEqualTo('time', start.toDate());
 			query.lessThan('time', finish.toDate());
 			query.find().then((x) => {
+				x.map((y) => (y.select = false));
 				console.log(x);
 				this.setState({ late: x, loading: false });
 			});
@@ -167,6 +170,7 @@ class Late extends Component {
 			query.greaterThanOrEqualTo('time', start.toDate());
 			query.lessThan('time', finish.toDate());
 			query.find().then((x) => {
+				x.map((y) => (y.select = false));
 				console.log(x);
 				this.setState({ late: x, loading: false });
 			});
@@ -185,6 +189,7 @@ class Late extends Component {
 			query.greaterThanOrEqualTo('time', start.toDate());
 			query.lessThan('time', finish.toDate());
 			query.find().then((x) => {
+				x.map((y) => (y.select = false));
 				console.log(x);
 				this.setState({ late: x, loading: false });
 			});
@@ -203,6 +208,7 @@ class Late extends Component {
 			// query.greaterThanOrEqualTo('createdAt', start.toDate());
 			// query.lessThan('createdAt', finish.toDate());
 			query.find().then((x) => {
+				x.map((y) => (y.select = false));
 				console.log(x);
 				this.setState({ late: x, loading: false });
 			});
@@ -226,7 +232,7 @@ class Late extends Component {
 
 		checkId.map((id) => {
 			this.handleRejectAll(id);
-		})
+		});
 	};
 
 	handleApprove(e) {
@@ -237,7 +243,7 @@ class Late extends Component {
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 1);
 			x.save().then(() => {
-				const newOvertime = [...this.state.late];
+				const newOvertime = [ ...this.state.late ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					late: newOvertime,
@@ -256,7 +262,7 @@ class Late extends Component {
 		query.get(e).then((x) => {
 			x.set('status', 1);
 			x.save().then(() => {
-				const newOvertime = [...this.state.late];
+				const newOvertime = [ ...this.state.late ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					late: newOvertime,
@@ -268,14 +274,16 @@ class Late extends Component {
 	}
 
 	handleReject(e) {
+		e.preventDefault();
 		this.setState({ loading: true });
 		const Late = Parse.Object.extend('Late');
 		const query = new Parse.Query(Late);
 
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 0);
+			x.set('alasanReject', this.state.alasan);
 			x.save().then(() => {
-				const newOvertime = [...this.state.late];
+				const newOvertime = [ ...this.state.late ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					late: newOvertime,
@@ -294,7 +302,7 @@ class Late extends Component {
 		query.get(e).then((x) => {
 			x.set('status', 0);
 			x.save().then(() => {
-				const newOvertime = [...this.state.late];
+				const newOvertime = [ ...this.state.late ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					late: newOvertime,
@@ -310,8 +318,8 @@ class Late extends Component {
 		let collecId = [];
 
 		late.map((x) => {
-			x.isChecked = e.target.checked;
-			if (x.isChecked) {
+			x.select = e.target.checked;
+			if (x.select) {
 				collecId.push(x.id);
 			} else {
 				collecId = [];
@@ -331,11 +339,11 @@ class Late extends Component {
 			console.log('bandingkan', x.id === e.target.value);
 			if (x.id === e.target.value) {
 				console.log('sama');
-				x.isChecked = e.target.checked;
-				if (x.isChecked) {
+				x.select = e.target.checked;
+				if (x.select) {
 					this.setState(
 						(prevState) => ({
-							checkId: [...this.state.checkId, checked]
+							checkId: [ ...this.state.checkId, checked ]
 						}),
 						() => console.log(this.state.checkId)
 					);
@@ -480,13 +488,35 @@ class Late extends Component {
 					handleHide={() => this.setState({ deleteMode: false })}
 					loading={this.state.loading}
 					handleSave={this.handleReject}
-					body={'Reject late ' + this.state.fullnames + ' ?'}
+					body={
+						<div>
+							<p>{'Reject terlambat ' + this.state.fullnames + ' ?'}</p>
+							<Form onSubmit={this.handleReject}>
+								<Form.Group controlId="formAlasan">
+									<Form.Control
+										as="textarea"
+										required={true}
+										placeholder="Masukkan alasan reject"
+										onChange={(e) => this.setState({ alasan: e.target.value })}
+									/>
+								</Form.Group>
+								<Button
+									variant={this.state.alasan === '' ? 'default' : 'primary'}
+									type="submit"
+									disabled={this.state.alasan === '' ? true : false}
+								>
+									Submit
+								</Button>
+							</Form>
+						</div>
+					}
 				/>
 				<ModalHandler
 					show={this.state.editMode}
 					title="Approve confirmation"
 					handleSave={this.handleApprove}
 					loading={this.state.loading}
+					footer={true}
 					handleHide={() => this.setState({ editMode: false })}
 					body={'Approve late ' + this.state.fullnames + ' ?'}
 				/>
@@ -534,7 +564,7 @@ class Late extends Component {
 																	});
 																}}
 															>
-																{[3, 1, 0].map((x) => (
+																{[ 3, 1, 0 ].map((x) => (
 																	<option value={x}>
 																		{handleConvert(x)}
 																	</option>
@@ -551,19 +581,25 @@ class Late extends Component {
 																onChange={(e) => {
 																	console.log(e.target.value);
 																	this.setState({
-																		statusCalendar: e.target.value
+																		statusCalendar:
+																			e.target.value
 																	});
 																}}
 															>
-																<option value="">Pilih Kategori</option>
-																{[4, 5, 6].map((z) => (
+																<option value="">
+																	Pilih Kategori
+																</option>
+																{[ 4, 5, 6 ].map((z) => (
 																	<option value={z}>
 																		{handleConvert(z)}
 																	</option>
 																))}
 															</Form.Control>
 														</Col>
-														<Col sm={{ span: 3 }} className="pull-right">
+														<Col
+															sm={{ span: 3 }}
+															className="pull-right"
+														>
 															<Form.Control
 																type="date"
 																value={startDate}
@@ -589,30 +625,39 @@ class Late extends Component {
 												</Form>
 											</Col>
 										</Row>
-										<Col sm={{ span: 0 }} className="float-none">
-											<Button
-												variant="primary"
-												type="submit"
-												disable={loading ? 'true' : 'false'}
-												className="mr-2 m-1"
-												onClick={this.approveChecked}
-											>
-												<i className="fa fa-check" />{' '}
-												{loading ? 'Fetching...' : 'Approve'}
-											</Button>
-											<Button
-												variant="primary"
-												type="submit"
-												className="m-1"
-												disable={loading ? 'true' : 'false'}
-												onClick={this.rejectChecked}
-											>
-												<i className="fa fa-close" />{' '}
-												{loading ? 'Fetching...' : 'Reject'}
-											</Button>
-										</Col>
+										{late.length === 0 ? (
+											''
+										) : !late[0].select ? (
+											''
+										) : (
+											<Col sm={{ span: 0 }} className="float-none">
+												<Button
+													variant="primary"
+													type="submit"
+													disable={loading ? 'true' : 'false'}
+													className="mr-2 m-1"
+													onClick={this.approveChecked}
+												>
+													<i className="fa fa-check" />{' '}
+													{loading ? 'Fetching...' : 'Approve'}
+												</Button>
+												<Button
+													variant="primary"
+													type="submit"
+													className="m-1"
+													disable={loading ? 'true' : 'false'}
+													onClick={this.rejectChecked}
+												>
+													<i className="fa fa-close" />{' '}
+													{loading ? 'Fetching...' : 'Reject'}
+												</Button>
+											</Col>
+										)}
+
 										<Row>
-											{late.length < 1 ? (<Col md={12}>No data found...</Col>) : (
+											{late.length < 1 ? (
+												<Col md={12}>No data found...</Col>
+											) : (
 												<Col md={12}>
 													<Table striped hover>
 														<thead>
@@ -620,7 +665,9 @@ class Late extends Component {
 																<th>
 																	<Form.Check
 																		type="checkbox"
-																		onClick={this.handleAllCheck}
+																		onClick={
+																			this.handleAllCheck
+																		}
 																	/>
 																</th>
 																<th>NAME</th>
@@ -636,15 +683,16 @@ class Late extends Component {
 																		<Form.Check
 																			type="checkbox"
 																			value={prop.id}
-																			checked={prop.isChecked}
+																			checked={prop.select}
 																			onChange={
-																				this.handleChildCheck
+																				this
+																					.handleChildCheck
 																			}
-																		// onChange={(e) => {
-																		//  const checked =
-																		//      e.target.checked;
+																			// onChange={(e) => {
+																			//  const checked =
+																			//      e.target.checked;
 
-																		// }}
+																			// }}
 																		/>
 																	</td>
 																	<td>{prop.get('fullname')}</td>
@@ -652,33 +700,38 @@ class Late extends Component {
 																	<td>
 																		{moment(
 																			prop.get('time')
-																		).format('DD/MM/YYYY [at] HH:mm:ss')}
+																		).format(
+																			'DD/MM/YYYY [at] HH:mm:ss'
+																		)}
 																	</td>
-																	{prop.get('status') == 3 ?
+																	{prop.get('status') == 3 ? (
 																		<td>
-																			{prop.attributes.imageSelfie ==
-																				undefined ? (
-																					''
-																				) : (
-																					<OverlayTrigger
-																						placement="right"
-																						overlay={tooltip(
-																							'Foto Absen'
-																						)}
-																					>
-																						<Button
-																							className="btn-circle btn-warning mr-2"
-																							onClick={() => {
-																								this.setState({
+																			{prop.attributes
+																				.imageSelfie ==
+																			undefined ? (
+																				''
+																			) : (
+																				<OverlayTrigger
+																					placement="right"
+																					overlay={tooltip(
+																						'Foto Absen'
+																					)}
+																				>
+																					<Button
+																						className="btn-circle btn-warning mr-2"
+																						onClick={() => {
+																							this.setState(
+																								{
 																									photoMode: true,
 																									lampiran: prop.attributes.imageSelfie.url()
-																								});
-																							}}
-																						>
-																							<i className="fa fa-eye" />
-																						</Button>
-																					</OverlayTrigger>
-																				)}
+																								}
+																							);
+																						}}
+																					>
+																						<i className="fa fa-eye" />
+																					</Button>
+																				</OverlayTrigger>
+																			)}
 																			<OverlayTrigger
 																				placement="right"
 																				overlay={tooltip(
@@ -688,14 +741,17 @@ class Late extends Component {
 																				<Button
 																					className="btn-circle btn-warning mr-2"
 																					onClick={() => {
-																						this.setState({
-																							editMode: true,
-																							userId: prop.id,
-																							userIndex: key,
-																							fullnames: prop.get(
-																								'fullname'
-																							)
-																						});
+																						this.setState(
+																							{
+																								editMode: true,
+																								userId:
+																									prop.id,
+																								userIndex: key,
+																								fullnames: prop.get(
+																									'fullname'
+																								)
+																							}
+																						);
 																					}}
 																				>
 																					<i className="fa fa-check" />
@@ -703,26 +759,37 @@ class Late extends Component {
 																			</OverlayTrigger>
 																			<OverlayTrigger
 																				placement="right"
-																				overlay={tooltip('Reject')}
+																				overlay={tooltip(
+																					'Reject'
+																				)}
 																			>
 																				<Button
 																					className="btn-circle btn-danger"
-																					onClick={(e) => {
-																						this.setState({
-																							deleteMode: true,
-																							userId: prop.id,
-																							userIndex: key,
-																							fullnames: prop.get(
-																								'fullname'
-																							)
-																						});
+																					onClick={(
+																						e
+																					) => {
+																						this.setState(
+																							{
+																								deleteMode: true,
+																								userId:
+																									prop.id,
+																								userIndex: key,
+																								fullnames: prop.get(
+																									'fullname'
+																								)
+																							}
+																						);
 																					}}
 																				>
 																					<i className="fa fa-close" />
 																				</Button>
 																			</OverlayTrigger>
 																		</td>
-																		: prop.get('status') == 0 ? (<td>Rejected</td>) : (<td>Approved</td>)}
+																	) : prop.get('status') == 0 ? (
+																		<td>Rejected</td>
+																	) : (
+																		<td>Approved</td>
+																	)}
 																</tr>
 															))}
 														</tbody>

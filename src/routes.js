@@ -30,9 +30,7 @@ import MasterCategory from 'views/Category/MasterCategory';
 import QuizList from 'views/Category/QuizList';
 import MasterContent from 'views/Content/MasterContent';
 import UserScore from 'views/Score/UserScore';
-import {
-	User
-} from 'parse';
+import { User } from 'parse';
 import Absen from 'views/Absen';
 import Overtime from 'views/Overtime';
 import Late from 'views/Late';
@@ -41,7 +39,15 @@ import Cuti from 'views/Cuti';
 import PermintaanPerubahan from 'views/PermintaanPerubahan';
 import StatusChangeRequest from 'views/StatusPerubahan';
 
-const dashboardRoutes = [{
+const dashboardRoutes = [
+	{
+		path: '/dashboard',
+		name: 'Dashboard',
+		icon: 'pe-7s-graph',
+		component: Dashboard,
+		layout: '/admin'
+	},
+	{
 		path: '/absen',
 		name: 'Absen',
 		icon: 'pe-7s-users',
@@ -86,18 +92,17 @@ const dashboardRoutes = [{
 	{
 		path: '/permintaan',
 		name: 'Change Request',
-		icon: 'pe-7s-date',
+		icon: 'pe-7s-back-2',
 		component: PermintaanPerubahan,
 		layout: '/admin'
 	},
 	{
 		path: '/statusrequest',
 		name: 'Status Request',
-		icon: 'pe-7s-date',
+		icon: 'pe-7s-arc',
 		component: StatusChangeRequest,
 		layout: '/admin'
 	}
-
 ];
 
 export default dashboardRoutes;

@@ -33,7 +33,7 @@ import { Card } from 'components/Card/Card.jsx';
 import { FormInputs } from 'components/FormInputs/FormInputs.jsx';
 import { UserCard } from 'components/UserCard/UserCard.jsx';
 import Button from 'components/CustomButton/CustomButton.jsx';
-
+import _ from 'lodash/lang';
 import avatar from 'assets/img/faces/face-3.jpg';
 import Axios from 'axios';
 import { baseurl } from 'utils/baseurl';
@@ -66,7 +66,8 @@ class EarlyLeave extends Component {
 			addMode: false,
 			editMode: false,
 			deleteMode: false,
-			buttonLoading: false
+			buttonLoading: false,
+			alasan: ''
 		};
 
 		this.handleSearch = this.handleSearch.bind(this);
@@ -74,7 +75,6 @@ class EarlyLeave extends Component {
 		this.handleApprove = this.handleApprove.bind(this);
 		this.handleReject = this.handleReject.bind(this);
 		this.handleFilter = this.handleFilter.bind(this);
-
 	}
 
 	componentDidMount() {
@@ -103,6 +103,7 @@ class EarlyLeave extends Component {
 		query.greaterThanOrEqualTo('createdAt', start.toDate());
 		query.lessThan('createdAt', finish.toDate());
 		query.find().then((x) => {
+			x.map((y) => (y.select = false));
 			console.log(x);
 			this.setState({ leave: x, loading: false });
 		});
@@ -154,6 +155,7 @@ class EarlyLeave extends Component {
 			query.greaterThanOrEqualTo('time', start.toDate());
 			query.lessThan('time', finish.toDate());
 			query.find().then((x) => {
+				x.map((y) => (y.select = false));
 				console.log(x);
 				this.setState({ leave: x, loading: false });
 			});
@@ -172,6 +174,7 @@ class EarlyLeave extends Component {
 			query.lessThan('time', finish.toDate());
 			query.find().then((x) => {
 				console.log(x);
+				x.map((y) => (y.select = false));
 				this.setState({ leave: x, loading: false });
 			});
 		} else if (this.state.statusCalendar == 6) {
@@ -190,6 +193,7 @@ class EarlyLeave extends Component {
 			query.lessThan('time', finish.toDate());
 			query.find().then((x) => {
 				console.log(x);
+				x.map((y) => (y.select = false));
 				this.setState({ leave: x, loading: false });
 			});
 		} else {
@@ -208,6 +212,7 @@ class EarlyLeave extends Component {
 			// query.lessThan('createdAt', finish.toDate());
 			query.find().then((x) => {
 				console.log(x);
+				x.map((y) => (y.select = false));
 				this.setState({ leave: x, loading: false });
 			});
 		}
@@ -221,7 +226,7 @@ class EarlyLeave extends Component {
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 1);
 			x.save().then(() => {
-				const newOvertime = [...this.state.leave];
+				const newOvertime = [ ...this.state.leave ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					leave: newOvertime,
@@ -240,7 +245,7 @@ class EarlyLeave extends Component {
 		query.get(e).then((x) => {
 			x.set('status', 1);
 			x.save().then(() => {
-				const newOvertime = [...this.state.leave];
+				const newOvertime = [ ...this.state.leave ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					leave: newOvertime,
@@ -252,14 +257,16 @@ class EarlyLeave extends Component {
 	}
 
 	handleReject(e) {
+		e.preventDefault();
 		this.setState({ loading: true });
 		const leave = Parse.Object.extend('EarlyLeave');
 		const query = new Parse.Query(leave);
 
 		query.get(this.state.userId).then((x) => {
 			x.set('status', 0);
+			x.set('alasanReject', this.state.alasan);
 			x.save().then(() => {
-				const newOvertime = [...this.state.leave];
+				const newOvertime = [ ...this.state.leave ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					leave: newOvertime,
@@ -278,7 +285,7 @@ class EarlyLeave extends Component {
 		query.get(e).then((x) => {
 			x.set('status', 0);
 			x.save().then(() => {
-				const newOvertime = [...this.state.leave];
+				const newOvertime = [ ...this.state.leave ];
 				newOvertime.splice(this.state.userIndex, 1);
 				this.setState({
 					leave: newOvertime,
@@ -387,33 +394,12 @@ class EarlyLeave extends Component {
 			.catch((err) => this.setState({ error: err, loading: false }));
 	}
 
-
 	render() {
 		const { leave, error, loading, batch, startDate, endDate, statusCalendar } = this.state;
 
-		// handleApproveAll(e) {
-		// 	this.setState({ loading: true });
-		// 	const leaveAll = Parse.Object.extend('EarlyLeave');
-		// 	const query = new Parse.Query(leaveAll);
-
-		// 	query.get(this.state.userId).then((x) => {
-		// 		x.set('status', 1);
-		// 		x.save().then(() => {
-		// 			const newOvertime = [...this.state.leaveAll];
-		// 			newOvertime.splice(this.state.userIndex, 1);
-		// 			this.setState({
-		// 				leaveAll: newOvertime,
-		// 				approveAllMode: false,
-		// 				loading: false
-		// 			});
-		// 		});
-		// 	});
-		// }
-
 		const ApproveAllIds = () => {
-
 			let arrayIds = [];
-			leave.forEach(d => {
+			leave.forEach((d) => {
 				if (d.select) {
 					arrayIds.push(d.id);
 					// arrayIds.push(d.get('fullname'));
@@ -424,43 +410,17 @@ class EarlyLeave extends Component {
 
 			const leaveAll = Parse.Object.extend('EarlyLeave');
 			const query = new Parse.Query(leaveAll);
-			// console.log(query.get(arrayIds));
-			let totalData = 0;
-
-			// arrayIds.map((id) => {
-			// console.log(id);
-			// for (let i = 0; i < arrayIds.length; i++) {
 
 			arrayIds.map((id) => {
 				this.handleApproveAll(id);
-				// console.log(id);
-				// query.get(id).then((x) => {
-
-				// 	x.set('status', 1);
-				// 	x.save(id).then(() => {
-				// 		console.log('success');
-				// 		totalData++;
-				// 		if (totalData == arrayIds.length) {
-				// 			console.log('stop');
-				// 			id = '';
-				// 		}
-				// 		// const newOvertime = [...this.state.leaveAll];
-				// 		// newOvertime.splice(this.state.userIndex, 1);
-				// 		// this.setState({
-				// 		// 	leaveAll: newOvertime,
-				// 		// 	approveAllMode: false,
-				// 		// 	loading: false
-				// 		// });
-				// 	});
-				// });
 			});
 			// }
 			// });
-		}
+		};
 
 		const RejectAllIds = () => {
 			let arrayIds = [];
-			leave.forEach(d => {
+			leave.forEach((d) => {
 				if (d.select) {
 					arrayIds.push(d.id);
 					// arrayIds.push(d.get('fullname'));
@@ -470,21 +430,10 @@ class EarlyLeave extends Component {
 			arrayIds.map((id) => {
 				this.handleRejectAll(id);
 			});
-		}
+		};
 
-		// const { user, error, loading } = this.state;
-		// const id = this.props.match.params.id;
-		const {
-			username,
-			email,
-			password,
-			passwordConf,
-			dob,
-			pob,
-			phoneNumber,
-			fullname,
-			profile
-		} = this.state;
+		console.log(leave.length === 0 ? '' : leave[0].select ? 'yes' : 'no');
+		//console.log(leave[0].get('select') === undefined);
 		const tooltip = (msg) => <Tooltip id="button-tooltip">{msg}</Tooltip>;
 
 		return (
@@ -495,13 +444,35 @@ class EarlyLeave extends Component {
 					handleHide={() => this.setState({ deleteMode: false })}
 					handleSave={this.handleReject}
 					loading={this.state.loading}
-					body={'Reject request ' + this.state.fullnames + ' ?'}
+					body={
+						<div>
+							<p>{'Reject pulang cepat ' + this.state.fullnames + ' ?'}</p>
+							<Form onSubmit={this.handleReject}>
+								<Form.Group controlId="formAlasan">
+									<Form.Control
+										as="textarea"
+										required={true}
+										placeholder="Masukkan alasan reject"
+										onChange={(e) => this.setState({ alasan: e.target.value })}
+									/>
+								</Form.Group>
+								<Button
+									variant={this.state.alasan === '' ? 'default' : 'primary'}
+									type="submit"
+									disabled={this.state.alasan === '' ? true : false}
+								>
+									Submit
+								</Button>
+							</Form>
+						</div>
+					}
 				/>
 				<ModalHandler
 					show={this.state.editMode}
 					title="Approve confirmation"
 					handleSave={this.handleApprove}
 					loading={this.state.loading}
+					footer={true}
 					handleHide={() => this.setState({ editMode: false })}
 					body={'Approve request ' + this.state.fullnames + ' ?'}
 				/>
@@ -555,7 +526,7 @@ class EarlyLeave extends Component {
 																	});
 																}}
 															>
-																{[3, 1, 0].map((x) => (
+																{[ 3, 1, 0 ].map((x) => (
 																	<option value={x}>
 																		{handleConvert(x)}
 																	</option>
@@ -572,19 +543,25 @@ class EarlyLeave extends Component {
 																onChange={(e) => {
 																	console.log(e.target.value);
 																	this.setState({
-																		statusCalendar: e.target.value
+																		statusCalendar:
+																			e.target.value
 																	});
 																}}
 															>
-																<option value="">Pilih Kategori</option>
-																{[4, 5, 6].map((z) => (
+																<option value="">
+																	Pilih Kategori
+																</option>
+																{[ 4, 5, 6 ].map((z) => (
 																	<option value={z}>
 																		{handleConvert(z)}
 																	</option>
 																))}
 															</Form.Control>
 														</Col>
-														<Col sm={{ span: 3 }} className="pull-right">
+														<Col
+															sm={{ span: 3 }}
+															className="pull-right"
+														>
 															<Form.Control
 																type="date"
 																value={startDate}
@@ -607,41 +584,77 @@ class EarlyLeave extends Component {
 															</Button>
 														</Col>
 													</Form.Group>
-													<Col sm={{ span: 0 }} className="float-none">
-														<Button className="m-1" onClick={() => {
-															// this.setState({
-															// 	approveAllMode: true,
-															// 	dataApprove: ApproveAllIds()
-															// });
-															ApproveAllIds();
-														}}>
-															<i className="fa fa-check"></i> Approve
+													{leave.length === 0 ? (
+														''
+													) : !leave[0].select ? (
+														''
+													) : (
+														<Col
+															sm={{ span: 0 }}
+															className="float-none"
+														>
+															<Button
+																className="m-1"
+																onClick={() => {
+																	// this.setState({
+																	// 	approveAllMode: true,
+																	// 	dataApprove: ApproveAllIds()
+																	// });
+																	ApproveAllIds();
+																}}
+															>
+																<i className="fa fa-check" />{' '}
+																Approve
 															</Button>
-														<Button className="m-1" onClick={() => {
-															RejectAllIds();
-														}}>
-															<i className="fa fa-close"></i> Reject
+															<Button
+																className="m-1"
+																onClick={() => {
+																	RejectAllIds();
+																}}
+															>
+																<i className="fa fa-close" /> Reject
 															</Button>
-													</Col>
+														</Col>
+													)}
 												</Form>
 											</Col>
-											{leave.length < 1 ? <Col md={12}>No data found...</Col> :
+											{leave.length < 1 ? (
+												<Col md={12}>No data found...</Col>
+											) : (
 												<Col md={12} sm={12} lg={12}>
 													<Table striped hover>
 														<thead>
 															<tr>
-																<OverlayTrigger placement="right" overlay={tooltip("Check all")}><th scope="col"><input type="checkbox" onChange={(e) => {
-																	let checked = e.target.checked;
-																	// setLeaveState(leave.map(d => {
-																	// 	d.select = checked;
-																	// 	return d;
-																	// }));
-																	this.setState(leave.map((d) => {
-																		d.select = checked;
-																		d.status = d.get('status');
-																		return d;
-																	}));
-																}} /></th></OverlayTrigger>
+																<OverlayTrigger
+																	placement="right"
+																	overlay={tooltip('Check all')}
+																>
+																	<th scope="col">
+																		<input
+																			type="checkbox"
+																			onChange={(e) => {
+																				let checked =
+																					e.target
+																						.checked;
+																				// setLeaveState(leave.map(d => {
+																				// 	d.select = checked;
+																				// 	return d;
+																				// }));
+																				this.setState(
+																					leave.map(
+																						(d) => {
+																							d.select = checked;
+																							d.status = d.get(
+																								'status'
+																							);
+																							return d;
+																						}
+																					)
+																				);
+																			}}
+																		/>
+																	</th>
+																</OverlayTrigger>
 																<th>No</th>
 																<th>Full Name</th>
 																<th>Time</th>
@@ -650,89 +663,176 @@ class EarlyLeave extends Component {
 															</tr>
 														</thead>
 														<tbody key={1}>
-															{leave.length < 1 ? <tr><td>No data found</td></tr> : leave.map((prop, key) => (
+															{leave.length < 1 ? (
 																<tr>
-																	<td scope="row"><input onChange={(event) => {
-																		let checked = event.target.checked;
-																		// setLeaveState(leave.map((data) => {
-																		// 	if (prop.id === data.id) {
-																		// 		data.select = checked;
-																		// 	}
-																		// 	return data;
-																		// }));
-																		this.setState(leave.map((data) => {
-																			if (prop.id === data.id) {
-																				data.select = checked;
-																				data.status = prop.get('status');
-																			}
-																			return data;
-																			// console.log(data.status);
-																		}));
-																	}} type="checkbox" checked={prop.select} /></td>
-																	<td>{key + 1}</td>
-																	<td>{prop.get('fullname')}</td>
-																	<td>{moment(prop.get('time')).format('DD/MM/YYYY [at] HH:mm:ss')}</td>
-																	<td>{prop.get('alasan')}</td>
-																	{prop.get('status') == 3 ?
-																		<td>
-																			<OverlayTrigger placement="right" overlay={tooltip("Detail")}>
-																				<Button className="btn btn-circle btn-warning mr-2" onClick={() => {
-																					this.setState({
-																						detailMode: true,
-																						// userId: prop.id,
-																						// userIndex: i,
-																						imageSelfies: prop.get('imageSelfie') === undefined ? ('https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400') : (prop.attributes.imageSelfie.url()),
-																						times: prop.get('time'),
-																						fullnames: prop.get('fullname'),
-																						status: prop.get('status'),
-																						descIzin: prop.get('descIzin'),
-																						reasons: prop.get('alasan')
-																					});
-																				}}>
-																					<i className="fa fa-eye"></i>
-																				</Button>
-																			</OverlayTrigger>
-
-																			<OverlayTrigger placement="right" overlay={tooltip('Approve')}>
-																				<Button className="btn btn-circle btn-warning mr-2" onClick={() => {
-																					this.setState({
-																						editMode: true,
-																						userId: prop.id,
-																						userIndex: key,
-																						fullnames: prop.get(
-																							'fullname'
-																						)
-																					});
-																				}}>
-																					<i className="fa fa-check" />
-																				</Button>
-																			</OverlayTrigger>
-
-																			<OverlayTrigger placement="right" overlay={tooltip('Reject')}>
-																				<Button className="btn btn-circle btn-danger" onClick={(e) => {
-																					this.setState({
-																						deleteMode: true,
-																						userId: prop.id,
-																						userIndex: key,
-																						fullnames: prop.get(
-																							'fullname'
-																						)
-																					});
-																				}}>
-																					<i className="fa fa-close" />
-																				</Button>
-																			</OverlayTrigger>
-																		</td>
-																		: prop.get('status') == 0 ? (<td>Rejected</td>) : (<td>Approved</td>)}
+																	<td>No data found</td>
 																</tr>
-															))}
+															) : (
+																leave.map((prop, key) => (
+																	<tr>
+																		<td scope="row">
+																			<input
+																				onChange={(
+																					event
+																				) => {
+																					let checked =
+																						event.target
+																							.checked;
+																					this.setState(
+																						leave.map(
+																							(
+																								data
+																							) => {
+																								if (
+																									prop.id ===
+																									data.id
+																								) {
+																									data.select = checked;
+																									data.status = prop.get(
+																										'status'
+																									);
+																								}
+																								return data;
+																								// console.log(data.status);
+																							}
+																						)
+																					);
+																				}}
+																				type="checkbox"
+																				checked={
+																					prop.select
+																				}
+																			/>
+																		</td>
+																		<td>{key + 1}</td>
+																		<td>
+																			{prop.get('fullname')}
+																		</td>
+																		<td>
+																			{moment(
+																				prop.get('time')
+																			).format(
+																				'DD/MM/YYYY [at] HH:mm:ss'
+																			)}
+																		</td>
+																		<td>
+																			{prop.get('alasan')}
+																		</td>
+																		{prop.get('status') == 3 ? (
+																			<td>
+																				<OverlayTrigger
+																					placement="right"
+																					overlay={tooltip(
+																						'Detail'
+																					)}
+																				>
+																					<Button
+																						className="btn btn-circle btn-primary mr-2"
+																						onClick={() => {
+																							this.setState(
+																								{
+																									detailMode: true,
+																									// userId: prop.id,
+																									// userIndex: i,
+																									imageSelfies:
+																										prop.get(
+																											'imageSelfie'
+																										) ===
+																										undefined
+																											? 'https://ununsplash.imgix.net/photo-1431578500526-4d9613015464?fit=crop&fm=jpg&h=300&q=75&w=400'
+																											: prop.attributes.imageSelfie.url(),
+																									times: prop.get(
+																										'time'
+																									),
+																									fullnames: prop.get(
+																										'fullname'
+																									),
+																									status: prop.get(
+																										'status'
+																									),
+																									descIzin: prop.get(
+																										'descIzin'
+																									),
+																									reasons: prop.get(
+																										'alasan'
+																									)
+																								}
+																							);
+																						}}
+																					>
+																						<i className="fa fa-eye" />
+																					</Button>
+																				</OverlayTrigger>
+
+																				<OverlayTrigger
+																					placement="right"
+																					overlay={tooltip(
+																						'Approve'
+																					)}
+																				>
+																					<Button
+																						className="btn btn-circle btn-warning mr-2"
+																						onClick={() => {
+																							this.setState(
+																								{
+																									editMode: true,
+																									userId:
+																										prop.id,
+																									userIndex: key,
+																									fullnames: prop.get(
+																										'fullname'
+																									)
+																								}
+																							);
+																						}}
+																					>
+																						<i className="fa fa-check" />
+																					</Button>
+																				</OverlayTrigger>
+
+																				<OverlayTrigger
+																					placement="right"
+																					overlay={tooltip(
+																						'Reject'
+																					)}
+																				>
+																					<Button
+																						className="btn btn-circle btn-danger"
+																						onClick={(
+																							e
+																						) => {
+																							this.setState(
+																								{
+																									deleteMode: true,
+																									userId:
+																										prop.id,
+																									userIndex: key,
+																									fullnames: prop.get(
+																										'fullname'
+																									)
+																								}
+																							);
+																						}}
+																					>
+																						<i className="fa fa-close" />
+																					</Button>
+																				</OverlayTrigger>
+																			</td>
+																		) : prop.get('status') ==
+																		0 ? (
+																			<td>Rejected</td>
+																		) : (
+																			<td>Approved</td>
+																		)}
+																	</tr>
+																))
+															)}
 														</tbody>
 													</Table>
 												</Col>
-											}
+											)}
 										</Row>
 										<Row>
-
 											{/* {leave.length < 1 ? (
 												<Col md={12}>No data found...</Col>
 											) : (
